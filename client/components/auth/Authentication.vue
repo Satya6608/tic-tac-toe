@@ -15,13 +15,14 @@
             type="email"
             placeholder="youremail@example.com"
             autofocus="on"
+            v-model="email"
           />
         </div>
         <div class="input-container">
           <input
             type="email"
             placeholder="******"
-            autofocus="on"
+            v-model="pass"
           />
         </div>
         <div class="account-controls">
@@ -53,13 +54,13 @@
           Create your account to Play the Game
         </p>
         <div class="input-container">
-          <input type="text" placeholder="username@123" />
+          <input type="text" placeholder="username@123" v-model="username"/>
         </div>
         <div class="input-container">
-          <input type="email" placeholder="youremail@example.com" />
+          <input type="email" placeholder="youremail@example.com" v-model="email"/>
         </div>
         <div class="input-container">
-          <input type="password" placeholder="******" />
+          <input type="password" placeholder="******" v-model="pass"/>
         </div>
         <div class="account-controls">
           <button>Next <i class="fas fa-solid fa-angle-right"></i></button>
@@ -82,6 +83,9 @@ const signupContainer = ref(null);
 
 const loginTransform = ref("scale(1)");
 const signupTransform = ref("scale(0)");
+const email = ref("");
+const pass = ref("");
+const username = ref("");
 
 const signupToggle = () => {
     banner.value = "translateX(-100%)";
@@ -238,7 +242,7 @@ input {
   color: #046586;
 }
 #signup-form-toggler,
-#login-form-toggler:hover {
+#login-form-toggler {
   border-bottom: 1px solid;
 }
 
