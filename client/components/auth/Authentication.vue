@@ -12,22 +12,22 @@
         </p>
         <div class="input-container">
           <input
-            type="email"
-            placeholder="youremail@example.com"
+            type="text"
+            placeholder="username"
             autofocus="on"
-            v-model="email"
+            v-model="username"
           />
         </div>
         <div class="input-container">
           <input
-            type="email"
+            type="password"
             placeholder="******"
             v-model="pass"
           />
         </div>
         <div class="account-controls">
           <a href="">Forgot Password?</a>
-          <button>Next <i class="fas fa-solid fa-angle-right"></i></button>
+          <button @click="Login()">Next <i class="fas fa-solid fa-angle-right"></i></button>
         </div>
         <span class="signup-text"
           >Don't have an account yet?
@@ -41,6 +41,7 @@
           src="https://img.freepik.com/free-vector/abstract-flat-design-background_23-2148450082.jpg?size=626&ext=jpg&ga=GA1.1.1286474015.1708934801&semt=sph"
           alt=""
           class="banner"
+          :style="{transform: bannerImg}"
         />
       </div>
 
@@ -63,7 +64,7 @@
           <input type="password" placeholder="******" v-model="pass"/>
         </div>
         <div class="account-controls">
-          <button>Next <i class="fas fa-solid fa-angle-right"></i></button>
+          <button @click="signUp()">Next <i class="fas fa-solid fa-angle-right"></i></button>
         </div>
         <span class="signup-text"
           >Already have an account?
@@ -76,11 +77,17 @@
 
 <script setup>
 import { ref } from "vue";
-
+import axios from "axios";
+import { useRouter } from 'vue-router';
+import { useAuthStore } from "~/store/auth.js"
+import { storeToRefs } from "pinia"
+const authStore = useAuthStore()
 const banner = ref(null);
+const bannerImg = ref(null);
 const loginContainer = ref(null);
 const signupContainer = ref(null);
 
+const router = useRouter();
 const loginTransform = ref("scale(1)");
 const signupTransform = ref("scale(0)");
 const email = ref("");
@@ -89,14 +96,69 @@ const username = ref("");
 
 const signupToggle = () => {
     banner.value = "translateX(-100%)";
+    bannerImg.value = "scaleX(-1)";
 console.log("signupToggle:", banner.value)
     loginTransform.value = "scale(0)";
     signupTransform.value = "scale(1)"
+    reset()
 }
 const loginToggle = () => {
     banner.value = "translateX(0%)"
+    bannerImg.value = "scaleX(-1)";
     signupTransform.value = "scale(0)"
     loginTransform.value = "scale(1)"
+    reset()
+}
+
+const Login = async () => {
+    console.log("Login:", username.value, pass.value)
+    try {
+    const res = await axios.post("http://localhost:7000/api/login", {
+      username: username.value,
+      password: pass.value,
+    });
+    if (res.data.success) {
+      const token = res.data.token;
+      const user = res.data.user;
+      authStore.login(token, user);
+      router.push("/tictactoe");
+      reset()
+    } else {
+      throw new Error(res.data.message);
+    }
+  } catch (err) {
+    console.error("something went wrong", err);
+  }
+}
+
+const reset = () => {
+  username.value = "";
+  email.value = "";
+  pass.value = "";
+}
+const signUp = async () => {
+  console.log("signUp:", username.value, email.value, pass.value)
+  if (username.value && pass.value && email.value) {
+      try {
+        const res = await axios.post("http://localhost:7000/api/signup", {
+          username: username.value,
+          email: email.value,
+          password: pass.value,
+        });
+        if (res) {
+          // setCookie("jwt", res.data.token, {
+          //   httpOnly: true,
+          //   maxAge: 60 * 60 * 24 * 7, // Example: 7 days, adjust as needed
+          //   path: "/", // You may adjust this based on your requirements
+          //   sameSite: "strict", // You may adjust this based on your requirements
+          // });
+          router.push("/tictactoe");
+          reset()
+        }
+      } catch (err) {
+        console.error("something went wrong", err);
+      }
+  } else return;
 }
 </script>
 

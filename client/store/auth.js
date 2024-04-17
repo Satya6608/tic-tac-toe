@@ -3,15 +3,15 @@ import { defineStore } from "pinia";
 export const useAuthStore = defineStore("auth", () => {
     const token = ref(null)
     const user = ref(null)
-    const login = (token, user) => {
-      this.token = token;
-      this.user = user;
-      sessionStorage.setItem("token", token);
-      sessionStorage.setItem("user", JSON.stringify(user));
+    const login = (tok, usr) => {
+      token.value = tok;
+      user.value = usr;
+      sessionStorage.setItem("token", tok);
+      sessionStorage.setItem("user", JSON.stringify(usr));
     }
     const logout = () => {
-      this.token = null;
-      this.user = null;
+      token.value = null;
+      user.value = null;
       sessionStorage.removeItem("token");
       sessionStorage.removeItem("user");
     }

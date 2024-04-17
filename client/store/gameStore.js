@@ -24,16 +24,18 @@ export const useGameStore = defineStore("gameStore", () => {
     }
     const addHistory = (payload) => {
     history.value = payload
+    console.log(payload, "history")
     stepNo.value = history.value.length-1
     }
-    const setWinner = (winner) => {
-    winner.value = winner;
+    const setWinner = (win) => {
+    winner.value = win;
+    console.log(winner.value, "winner")
     }
     const setStepNo = (no) =>{
     stepNo.value = no;
     }
 
     return{
-        currentPlayer, history, stepNo, winner
+        currentPlayer, history, stepNo, winner, changePlayer, togglePlayer, reset, addHistory, setWinner, setStepNo
     }
 })
