@@ -50,7 +50,6 @@ const winner = computed(() => {
 });
 
 const handleCellClick = (clickedCellIndex) => {
-    console.log("handleCellClick" + clickedCellIndex)
   if (gameBoard.value[clickedCellIndex] !== '' || !gameActive.value) return;
   gameBoard.value[clickedCellIndex] = currentPlayer.value;
   checkForWinOrDraw();

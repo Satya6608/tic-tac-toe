@@ -20,6 +20,7 @@ const signup = async (req, res) => {
       success: true,
       message: "User registered successfully",
       token: token,
+      user: { _id: newUser._id, email: newUser.email, username: newUser.username },
     });
   } catch (error) {
     console.error(error);
@@ -57,7 +58,7 @@ const login = async (req, res) => {
         success: true,
         message: "User registered successfully",
         token: token,
-        user: { email: user.email, username: user.username },
+        user: { _id: user._id, email: user.email, username: user.username },
       });
     } else {
       res.status(401).json({ error: "Invalid credentials" });
@@ -68,4 +69,44 @@ const login = async (req, res) => {
   }
 };
 
-module.exports = { signup, login };
+const editUser = async (req, res) => {
+  try {
+    const { username, password, email } = req.body;
+    const userId = req.params.id; // Assuming userId is passed as a parameter in the URL
+
+    // Find the user by ID
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Update user data
+    if (username) {
+      user.username = username;
+    }
+    if (password) {
+      // Hash new password before saving it to the database
+      const hashedPassword = await bcrypt.hash(password, 10);
+      user.password = hashedPassword;
+    }
+    if (email) {
+      user.email = email;
+    }
+
+    // Save the updated user data
+    await user.save();
+
+    // Send response with updated user data
+    res.json({
+      success: true,
+      message: "User updated successfully",
+      user: { _id: user._id, email: user.email, username: user.username },
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+module.exports = { signup, login, editUser };

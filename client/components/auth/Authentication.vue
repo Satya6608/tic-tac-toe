@@ -97,7 +97,6 @@ const username = ref("");
 const signupToggle = () => {
     banner.value = "translateX(-100%)";
     bannerImg.value = "scaleX(-1)";
-console.log("signupToggle:", banner.value)
     loginTransform.value = "scale(0)";
     signupTransform.value = "scale(1)"
     reset()
@@ -111,7 +110,6 @@ const loginToggle = () => {
 }
 
 const Login = async () => {
-    console.log("Login:", username.value, pass.value)
     try {
     const res = await axios.post("http://localhost:7000/api/login", {
       username: username.value,
@@ -121,7 +119,7 @@ const Login = async () => {
       const token = res.data.token;
       const user = res.data.user;
       authStore.login(token, user);
-      router.push("/tictactoe");
+      router.push("/profile");
       reset()
     } else {
       throw new Error(res.data.message);
@@ -137,7 +135,6 @@ const reset = () => {
   pass.value = "";
 }
 const signUp = async () => {
-  console.log("signUp:", username.value, email.value, pass.value)
   if (username.value && pass.value && email.value) {
       try {
         const res = await axios.post("http://localhost:7000/api/signup", {
@@ -145,14 +142,15 @@ const signUp = async () => {
           email: email.value,
           password: pass.value,
         });
-        if (res) {
+        if (res.data.success) {
           // setCookie("jwt", res.data.token, {
           //   httpOnly: true,
           //   maxAge: 60 * 60 * 24 * 7, // Example: 7 days, adjust as needed
           //   path: "/", // You may adjust this based on your requirements
           //   sameSite: "strict", // You may adjust this based on your requirements
           // });
-          router.push("/tictactoe");
+          authStore.login(res.data.token, res.data.user)
+          router.push("/profile");
           reset()
         }
       } catch (err) {

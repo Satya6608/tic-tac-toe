@@ -5,6 +5,7 @@ const router = express.Router();
 
 // Signup endpoint
 router.post("/signup", authController.signup);
+router.put("/edit/:id", authController.editUser);
 
 // Login endpoint
 router.post("/login", authController.login);

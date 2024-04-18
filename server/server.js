@@ -2,6 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const authRoutes = require("./routes/authRoutes");
+const gameRoutes = require("./routes/gameRoutes");
 const { connectToDatabase } = require("./utils/dbConnection");
 const env = require("dotenv")
 
@@ -18,6 +19,7 @@ app.use(bodyParser.json());
 
 // Routes
 app.use("/api", authRoutes);
+app.use("/api", gameRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

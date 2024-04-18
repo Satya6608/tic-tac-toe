@@ -6,14 +6,14 @@ export const useAuthStore = defineStore("auth", () => {
     const login = (tok, usr) => {
       token.value = tok;
       user.value = usr;
-      sessionStorage.setItem("token", tok);
-      sessionStorage.setItem("user", JSON.stringify(usr));
+      localStorage.setItem("token", tok);
+      localStorage.setItem("user", JSON.stringify(usr));
     }
     const logout = () => {
       token.value = null;
       user.value = null;
-      sessionStorage.removeItem("token");
-      sessionStorage.removeItem("user");
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
     }
     return { token, user, login, logout };
 });

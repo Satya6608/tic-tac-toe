@@ -12,10 +12,8 @@ onMounted(async () => {
   // Check if the user is authenticated
    if (process.client){
     const user = await getToken()
-    console.log(user, "userouteer")
     if(user) {
-      console.log(user, "user")
-      return router.push("/tictactoe")
+      return router.push("/profile")
     }
   }
 });

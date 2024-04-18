@@ -1,111 +1,170 @@
 <template>
-  <div class="game-container">
-    <div>
-      <h1>tic-tac-toe 💜</h1>
-    </div>
-    <div v-if="!winner && history.length !== 10">Next Player is <b>{{currentPlayer}}</b></div>
-    <div v-else-if="winner">Winner <b>{{winner}}</b></div>
-    <div v-else>Match is Draw</div>
-    <div id="game-board">
-      <div class="row" v-for="(m, i) in 3" :key="i">
-        <div class="cell" id="cell-1" v-for="(n, inx) in 3" :key="inx" @click="handleClick(m,n)">{{getVal(m,n)}}</div>
+  <div>
+    <div class="game-container">
+      <div>
+        <h1>tic-tac-toe 💜</h1>
       </div>
+      <div v-if="!winner && history.length !== 10">
+        Next Player is <b>{{ currentPlayer }}</b>
+      </div>
+      <div v-else-if="winner">
+        Winner <b>{{ winner }}</b>
+      </div>
+      <div v-else>Match is Draw</div>
+      <div id="game-board">
+        <div class="row" v-for="(m, i) in 3" :key="i">
+          <div
+            class="cell"
+            id="cell-1"
+            v-for="(n, inx) in 3"
+            :key="inx"
+            @click="handleClick(m, n)"
+          >
+            {{ getVal(m, n) }}
+          </div>
+        </div>
+      </div>
+      <div id="gameMessage" class="game-message"></div>
+      <button id="resetButton" v-if="winner" @click="resetData()">
+        Reset Game
+      </button>
+      <div v-else-if="history.length == 10">
+        Match Draw
+        <button id="resetButton" @click.prevent="resetData()">
+          Reset Game
+        </button>
+      </div>
+      <Award />
     </div>
-    <div id="gameMessage" class="game-message"></div>
-    <button id="resetButton" v-if="winner" @click="resetData()">Reset Game</button>
-    <div v-else-if="history.length == 10">Match Draw <button id="resetButton" @click.prevent="resetData()"> Reset Game</button></div>
-    <Award />
   </div>
 </template>
 
 <script setup>
-import Award from "~/components/Award.vue"
-import { ref } from "vue"
-import { useGameStore } from "~/store/gameStore.js"
-import { storeToRefs } from "pinia"
-// import { getToken } from "~/services/jwt.service";
-// import { useRouter } from 'vue-router';
-// const router = useRouter();
+import Award from "~/components/Award.vue";
+import { ref, watch } from "vue";
+import axios from "axios";
+import { useGameStore } from "~/store/gameStore.js";
+import { storeToRefs } from "pinia";
+import { useAuthStore } from "~/store/auth.js";
+const authStore = useAuthStore();
+const { user } = storeToRefs(authStore);
 
-import auth from "~/middleware/auth.js"
+import { useRouter } from 'vue-router';
+const router = useRouter();
+
+import auth from "~/middleware/auth.js";
 definePageMeta({
-  middleware: ["auth"]
-})
+  middleware: ["auth"],
+});
 
-const gameStore = useGameStore()
-const { history, stepNo, currentPlayer, winner } = storeToRefs(gameStore)
+const gameStore = useGameStore();
+const { history, stepNo, currentPlayer, winner, oponentPlayer } =
+  storeToRefs(gameStore);
 
-const calculateWinner = function(squares) {
-    const lines = [
-      [0, 1, 2],[3, 4, 5],[6, 7, 8],
-      [0, 3, 6],[1, 4, 7],[2, 5, 8],
-      [0, 4, 8],[2, 4, 6],
-    ];
-    for (let i = 0; i < lines.length; i++) {
-      const [a, b, c] = lines[i];
-      console.log(squares[a], squares[b], squares[c], a, b, c, "asdfghjkhgfdsadfghjk",squares);
-      if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-        return squares[a];
-      }
+const calculateWinner = function (squares) {
+  const lines = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6],
+  ];
+  for (let i = 0; i < lines.length; i++) {
+    const [a, b, c] = lines[i];
+    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+      return squares[a];
     }
-    return null;
   }
+  return null;
+};
 
-const getVal = (i, j) => { 
-  // console.log(history.value[stepNo.value], "squares", stepNo.value)
-  // if(idx.value == stepNo.value)
-  const idx = 3*(i-1) + (j-1);
-  return history.value[stepNo.value]['squares'][idx];
-
-}
+const getVal = (i, j) => {
+  const idx = 3 * (i - 1) + (j - 1);
+  return history.value[stepNo.value]["squares"][idx];
+};
 
 const resetData = () => {
-  gameStore.reset()
-}
+  gameStore.reset();
+};
 
 const handleClick = (i, j) => {
-  const idx = 3*(i-1) + (j-1);
-  let ghistory = history.value.slice(0, stepNo.value+1);
-  console.log(ghistory, "gistory", history.value, stepNo.value+1);
+  const idx = 3 * (i - 1) + (j - 1);
+  let ghistory = history.value.slice(0, stepNo.value + 1);
   let current = ghistory[ghistory.length - 1];
   let squares = current.squares.slice();
-  if(current.winner || squares[idx]){
-    alert("winner"+ current.winner)
-    return ;
+  if (current.winner || squares[idx]) {
+    alert("winner" + current.winner);
+    return;
   }
   squares[idx] = currentPlayer.value;
 
   let winner = calculateWinner(squares);
   let payload = {
-    'squares':squares,
-    'winner': winner,
-    'player':currentPlayer.value == 'X'? 'O':'X'
-  }
-  console.log(payload, "payload");
-  gameStore.addHistory( ghistory.concat([payload]) );
-  if(winner){
-    console.log(winner, "winner");
+    squares: squares,
+    winner: winner,
+    player:
+      currentPlayer.value == user?.value?.username ? oponentPlayer : user?.value.username,
+  };
+  gameStore.addHistory(ghistory.concat([payload]));
+  if (winner) {
     gameStore.setWinner(winner);
   }
-  gameStore.togglePlayer();
-  console.log(3*(i-1) + (j-1), "sdfghjkl;", history.value[0])
+  gameStore.togglePlayer(currentPlayer.value);
+};
+const getRandomNumber = () => {
+  return Math.random();
+};
+const setGameData = async() => {
+   try {
+    const res = await axios.post("http://localhost:7000/api/game", {
+      user: user?.value?._id,
+      history:history?.value[history?.value.length - 1]["squares"],
+      opponent:oponentPlayer?.value,
+      winner: winner?.value,
+    });
+    if (res.data) {
+      console.log(res.data);
+      // const token = res.data.token;
+      // const user = res.data.user;
+      // // authStore.login(token, user);
+      // // router.push("/");
+      // reset()
+    } else {
+      throw new Error(res.data.message);
+    }
+  } catch (err) {
+    console.error("something went wrong", err);
+  }
 }
 
-// onMounted(async () => {
-//   // Check if the user is authenticated
-//    if (process.client){
-//     const user = await getToken()
-//     console.log(user, "userouteer")
-//     if(!user) {
-//       console.log(user, "user")
-//       router.push("/")
-//     }else return
-//   }
-// });
+watch(winner, async ()=>{
+  if(winner.value){
+    console.log(winner.value, "winnersdfghjkljhgfdsfghj");
+    setGameData()
+  } 
+  setTimeout(() => {
+    gameStore.reset();
+  }, 3000);
+})
+onMounted(async () => {
+  if(!oponentPlayer.value) router.push('/profile')
+  const randomNumber1 = getRandomNumber();
+  const randomNumber2 = getRandomNumber();
+    if (randomNumber1 < randomNumber2) {
+      await gameStore.changePlayer(user?.value?.username);
+    } else if (randomNumber1 > randomNumber2) {
+      await gameStore.changePlayer(oponentPlayer.value)
+    } else {
+      await gameStore.changePlayer(user?.value?.username);
+    }
+});
 </script>
 
 <style scoped>
-.game-container{
+.game-container {
   display: flex;
   flex-direction: column;
   justify-content: center;

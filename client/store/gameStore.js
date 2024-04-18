@@ -1,7 +1,13 @@
-import { defineStore } from "pinia";
+import { defineStore, storeToRefs } from "pinia";
 import { ref } from "vue"
+import { useAuthStore } from "./auth";
 export const useGameStore = defineStore("gameStore", () => {
-    const currentPlayer = ref('X')
+    const currentPlayer = ref('')
+    const oponentPlayer = ref('')
+    const userPlayer = ref('')
+
+    const authStore = useAuthStore()
+    const { user } = storeToRefs(authStore)
   	const history =ref([
   		{squares: Array(9).fill(null),winner:null,player:'X'}
   	])
@@ -9,11 +15,16 @@ export const useGameStore = defineStore("gameStore", () => {
     const winner = ref(null)
 
     const changePlayer = (player) => {
-    currentPlayer.value = player
+        currentPlayer.value = player
     }
-    const togglePlayer = () => {
-    currentPlayer.value = currentPlayer.value == 'X' ? '0' : 'X'
+    const togglePlayer = (player) => {
+    currentPlayer.value = currentPlayer.value == user?.value?.username ? oponentPlayer.value : user?.value?.username
     }
+
+    const setOponentPlayer = (payload) => {
+        oponentPlayer.value = payload
+    }
+
     const reset = ()=> {
     history.value = [
             {squares: Array(9).fill(null),winner:null}
@@ -36,6 +47,6 @@ export const useGameStore = defineStore("gameStore", () => {
     }
 
     return{
-        currentPlayer, history, stepNo, winner, changePlayer, togglePlayer, reset, addHistory, setWinner, setStepNo
+        currentPlayer, history, stepNo, winner, changePlayer, setOponentPlayer, togglePlayer, reset, addHistory, setWinner, setStepNo, oponentPlayer, userPlayer
     }
 })
