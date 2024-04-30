@@ -28,6 +28,10 @@ import { useAuthStore } from "~/store/auth.js"
 import { storeToRefs } from "pinia";
 import { useRouter } from 'vue-router'
 import axios from "axios";
+import auth from "~/middleware/auth.js";
+definePageMeta({
+  middleware: ["auth"],
+});
 
 const router = useRouter();
 

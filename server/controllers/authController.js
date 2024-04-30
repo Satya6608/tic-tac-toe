@@ -20,7 +20,7 @@ const signup = async (req, res) => {
       success: true,
       message: "User registered successfully",
       token: token,
-      user: { _id: newUser._id, email: newUser.email, username: newUser.username },
+      user: { _id: newUser._id, email: newUser.email, username: newUser.username, image: user.image },
     });
   } catch (error) {
     console.error(error);
@@ -58,7 +58,7 @@ const login = async (req, res) => {
         success: true,
         message: "User registered successfully",
         token: token,
-        user: { _id: user._id, email: user.email, username: user.username },
+        user: { _id: user._id, email: user.email, username: user.username, image: user.image },
       });
     } else {
       res.status(401).json({ error: "Invalid credentials" });
@@ -109,4 +109,18 @@ const editUser = async (req, res) => {
   }
 };
 
-module.exports = { signup, login, editUser };
+const allUsers = async (req, res) => {
+  const keyword = req.query.search
+    ? {
+        $or: [
+          { name: { $regex: req.query.search, $options: "i" } },
+          { email: { $regex: req.query.search, $options: "i" } },
+        ],
+      }
+    : {};
+
+  const users = await User.find(keyword)
+  res.send(users);
+}
+
+module.exports = { signup, login, editUser, allUsers };

@@ -1,87 +1,127 @@
 <template>
   <div class="profile__container">
     <div class="profile-card">
-      <div class="avatar">
+      <div class="avatar" v-if="user?.image">
         <img
-          src="https://images.pexels.com/photos/375880/pexels-photo-375880.jpeg?auto=compress&cs=tinysrgb&w=800"
+          :src="user?.image"
           alt="profile-img"
         />
       </div>
       <div class="salutation">
-        <div class="name">{{user?.username}}</div>
-        <div class="designation">{{user?.email}}</div>
+        <div class="name">{{ user?.username }}</div>
+        <div class="designation">{{ user?.email }}</div>
       </div>
       <div class="options">
         <button class="status" @click="selectOponent()">
           <span>Play</span>
         </button>
-        <nuxt-link
-          to="/edit" class="edit-profile">
+        <nuxt-link to="/edit" class="edit-profile">
           <span>Edit Profile</span>
         </nuxt-link>
       </div>
     </div>
     <div v-if="items.length" class="mt-4">
-      <GameTable/>
+      <GameTable />
     </div>
     <div class="popUpContainer" v-if="oponentPopup">
+      <p class="absolute right-3.5 top-1.5 cursor-pointer"
+@click="oponentPopup = false">X</p>
       <h2 class="text-center">Please give oponent Name</h2>
-        <div class="popUp">
-          <div class="input-container">
-            <input type="text" v-model="openentPlayer" class="m-0">
-          </div>
-            <div class="buttons options !w-full mt-4">
-                <button @click="oponentPopup = false">Close</button>
-                <button @click="joinRoom()">Join</button>
-            </div>
+      <div class="popUp relative">
+        <div class="input-container">
+          <input
+            type="text"
+            v-model="openentPlayer"
+            class="m-0"
+            @input="searchUser()"
+          />
         </div>
+        <div class="buttons options !w-full" v-if="searchedPlayer" style="
+    display: block;
+    position: absolute; top:25px">
+          <button
+            class="w-full !flex-row !justify-start"
+            v-for="(player, i) in searchedPlayer"
+            :key="i"
+            @click="joinRoom(player)"
+          >
+    <img class="w-8 h-8 rounded-full" :src="player.image"/>
+          {{player.username}}
+          </button>
+        </div>
+        <!-- <div class="buttons options !w-full mt-4">
+          <button @click="oponentPopup = false">Close</button>
+          <button @click="joinRoom()">Join</button>
+        </div> -->
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import axios from "axios"
-import { useAuthStore } from "~/store/auth.js"
-import { useUserStore } from "~/store/users.js"
-import { useGameStore } from "~/store/gameStore.js"
-import { storeToRefs } from "pinia"
-import GameTable from "~/components/GameTable.vue"
+import axios from "axios";
+import { useAuthStore } from "~/store/auth.js";
+import { useUserStore } from "~/store/users.js";
+import { useGameStore } from "~/store/gameStore.js";
+import { storeToRefs } from "pinia";
+import GameTable from "~/components/GameTable.vue";
 import { ref } from "vue";
 import auth from "~/middleware/auth.js";
-import { useRouter } from 'vue-router';
+import { useRouter } from "vue-router";
+import { io } from "socket.io-client";
+const socket = io("http://localhost:7000");
+
 const router = useRouter();
 definePageMeta({
   middleware: ["auth"],
 });
-const authStore = useAuthStore()
-const gameStore = useGameStore()
-const userStore = useUserStore()
-const { user } = storeToRefs(authStore)
-const { items } = storeToRefs(userStore)
+const authStore = useAuthStore();
+const gameStore = useGameStore();
+const userStore = useUserStore();
+const { user } = storeToRefs(authStore);
+const { items } = storeToRefs(userStore);
 
 const oponentPopup = ref(false);
 const openentPlayer = ref("");
+const searchedPlayer = ref([]);
 const selectOponent = () => {
-    oponentPopup.value = !oponentPopup.value;
-}
+  oponentPopup.value = !oponentPopup.value;
+};
 
-watch(openentPlayer, (newValue, oldValue) => {
-  localStorage.setItem("openentPlayer", newValue);
-});
-const joinRoom = () => {
-    gameStore.setOponentPlayer(openentPlayer.value)
-    router.push('/tictactoe')
-}
+// watch(openentPlayer, (newValue, oldValue) => {
+//   localStorage.setItem("openentPlayer", newValue);
+// });
+const joinRoom = (player) => {
+  gameStore.setOponentPlayer(player?.username);
+  router.push("/tictactoe");
+};
+const searchUser = () => {
+  if (openentPlayer.value.length > 0) {
+    axios
+        .get(`http://localhost:7000/api/?search=${openentPlayer.value}`)
+        .then((res) => {
+          console.log(res.data);
+          // if (res.data.length > 0) {
+            searchedPlayer.value = res.data
+            //   gameStore.setOponentPlayer(res.data[0].username);
+          //   router.push("/tictactoe");
+          // }
+        });
+    };
+};
 onMounted(async () => {
-  await userStore.fetchItems(user?.value._id)
+  if (!user) return router.push("/");
+  await userStore.fetchItems(user?.value._id);
+  socket.emit("authenticate", user?.value._id);
+  clearTimeout(searchUser)
 });
 </script>
 
 <style scoped>
 .profile__container {
-    display: grid;
-    place-items: center;
-    padding: 50px 0;
+  display: grid;
+  place-items: center;
+  padding: 50px 0;
 }
 .profile-card {
   background-color: white;
@@ -137,7 +177,8 @@ onMounted(async () => {
   gap: 10px;
 }
 
-.options > button, .options > a{
+.options > button,
+.options > a {
   flex: 1;
   display: flex;
   align-items: center;
@@ -189,17 +230,17 @@ onMounted(async () => {
 .option:hover {
   background-color: #2d255a;
 }
-.popUpContainer{
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: antiquewhite;
-    height: 50vh;
-    width: 50vw;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
+.popUpContainer {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: antiquewhite;
+  height: 50vh;
+  width: 50vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
 }
 </style>

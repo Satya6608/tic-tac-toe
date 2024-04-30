@@ -13,6 +13,7 @@ export const useAuthStore = defineStore("auth", () => {
       token.value = null;
       user.value = null;
       localStorage.removeItem("token");
+      localStorage.removeItem("openentPlayer");
       localStorage.removeItem("user");
     }
     return { token, user, login, logout };

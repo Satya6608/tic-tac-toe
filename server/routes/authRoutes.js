@@ -4,6 +4,7 @@ const authController = require("../controllers/authController");
 const router = express.Router();
 
 // Signup endpoint
+router.get("/", authController.allUsers);
 router.post("/signup", authController.signup);
 router.put("/edit/:id", authController.editUser);
 

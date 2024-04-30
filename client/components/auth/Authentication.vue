@@ -41,8 +41,8 @@
           src="https://img.freepik.com/free-vector/abstract-flat-design-background_23-2148450082.jpg?size=626&ext=jpg&ga=GA1.1.1286474015.1708934801&semt=sph"
           alt=""
           class="banner"
-          :style="{transform: bannerImg}"
         />
+          <!-- :style="{transform: bannerImg}" -->
       </div>
 
       <div
@@ -81,6 +81,9 @@ import axios from "axios";
 import { useRouter } from 'vue-router';
 import { useAuthStore } from "~/store/auth.js"
 import { storeToRefs } from "pinia"
+import { io } from 'socket.io-client';
+const socket = io('http://localhost:7000');
+
 const authStore = useAuthStore()
 const banner = ref(null);
 const bannerImg = ref(null);
@@ -116,6 +119,7 @@ const Login = async () => {
       password: pass.value,
     });
     if (res.data.success) {
+      socket.emit("authenticate", res.data.user._id)
       const token = res.data.token;
       const user = res.data.user;
       authStore.login(token, user);

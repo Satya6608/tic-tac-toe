@@ -5,7 +5,7 @@
         <h1>tic-tac-toe 💜</h1>
       </div>
       <div v-if="!winner && history.length !== 10">
-        Next Player is <b>{{ currentPlayer }}</b>
+        <b>{{ currentPlayer }}</b>'s Turn 
       </div>
       <div v-else-if="winner">
         Winner <b>{{ winner }}</b>
@@ -46,9 +46,11 @@ import axios from "axios";
 import { useGameStore } from "~/store/gameStore.js";
 import { storeToRefs } from "pinia";
 import { useAuthStore } from "~/store/auth.js";
+import { io } from 'socket.io-client';
 const authStore = useAuthStore();
 const { user } = storeToRefs(authStore);
 
+const socket = io('http://localhost:7000');
 import { useRouter } from 'vue-router';
 const router = useRouter();
 
@@ -92,6 +94,7 @@ const resetData = () => {
 
 const handleClick = (i, j) => {
   const idx = 3 * (i - 1) + (j - 1);
+  socket.emit("move", idx);
   let ghistory = history.value.slice(0, stepNo.value + 1);
   let current = ghistory[ghistory.length - 1];
   let squares = current.squares.slice();
@@ -118,6 +121,18 @@ const getRandomNumber = () => {
   return Math.random();
 };
 const setGameData = async() => {
+  socket.on('update', (updatedBoard) => {
+});
+
+// Listen for game over event
+socket.on('gameOver', () => {
+  // Show game over message
+});
+
+// Listen for player disconnected event
+socket.on('playerDisconnected', () => {
+  // Handle player disconnection
+});
    try {
     const res = await axios.post("http://localhost:7000/api/game", {
       user: user?.value?._id,
@@ -144,7 +159,7 @@ watch(winner, async ()=>{
   if(winner.value){
     console.log(winner.value, "winnersdfghjkljhgfdsfghj");
     setGameData()
-  } 
+  }
   setTimeout(() => {
     gameStore.reset();
   }, 3000);

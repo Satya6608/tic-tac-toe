@@ -10,18 +10,39 @@
         >
           Tic Tac Toe App
         </nuxt-link>
+        <div class="flex gap-x-4" v-if="user">
+          <button
+          to="/profile"
+          class="text-white"
+          @click="logout()"
+        >
+          Logout
+          </button>
         <nuxt-link
           to="/profile"
           class="flex items-center space-x-3 rtl:space-x-reverse text-white"
         >
           Profile
         </nuxt-link>
+        </div>
       </div>
     </nav>
   </div>
 </template>
 <script setup>
+import { useAuthStore } from "~/store/auth.js"
+import { storeToRefs } from "pinia"
+const authStore = useAuthStore()
+const { user } = storeToRefs(authStore)
+import { useRouter } from 'vue-router';
+const router = useRouter();
 
+
+
+const logout = () => {
+  router.push('/');
+  authStore.logout()
+}
 </script>
   
   <style>
