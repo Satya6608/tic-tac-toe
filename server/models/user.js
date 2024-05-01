@@ -15,6 +15,10 @@ const userSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
+  online: {
+    type: Boolean,
+    default: true,
+  },
   image: {
     type: String,
     default: 'https://images.pexels.com/photos/375880/pexels-photo-375880.jpeg?auto=compress&cs=tinysrgb&w=800',

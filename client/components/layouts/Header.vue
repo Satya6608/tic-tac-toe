@@ -35,15 +35,19 @@ import { storeToRefs } from "pinia"
 const authStore = useAuthStore()
 const { user } = storeToRefs(authStore)
 import { useRouter } from 'vue-router';
+import { io } from "socket.io-client";
+const socket = io("http://localhost:7000");
+
 const router = useRouter();
 
 
 
 const logout = () => {
+  // socket.emit("logout");
   router.push('/');
-  authStore.logout()
+  authStore.logout();
 }
 </script>
-  
-  <style>
+
+<style>
 </style>

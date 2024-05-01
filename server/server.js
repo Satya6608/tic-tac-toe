@@ -6,6 +6,7 @@ const socketIo = require("socket.io");
 const authRoutes = require("./routes/authRoutes");
 const gameRoutes = require("./routes/gameRoutes");
 const { connectToDatabase } = require("./utils/dbConnection");
+const { handleSocketConnection } = require('./controllers/socketController');
 const env = require("dotenv");
 
 env.config();
@@ -34,53 +35,55 @@ const io = socketIo(server, {
   }
 });
 
-const connectedUsers = new Map();
+handleSocketConnection(io)
+
+// const connectedUsers = new Map();
 // Handle Socket.IO connections
-io.on('connection', (socket) => {
-  console.log('A user connected',socket.id);
+// io.on('connection', (socket) => {
+//   console.log('A user connected',socket.id);
 
-  socket.on('authenticate', (userId) => {
-    console.log('User authenticated', userId);
-    connectedUsers.set(userId, socket.id);
-    console.log('connectedUsers',connectedUsers);
-    console.log(isUserOnline(userId));
-  });
+//   socket.on('authenticate', (userId) => {
+//     console.log('User authenticated', userId);
+//     connectedUsers.set(userId, socket.id);
+//     console.log('connectedUsers',connectedUsers);
+//     console.log(isUserOnline(userId));
+//   });
 
-  // Handle disconnection and remove user from connected users list
-  socket.on('disconnect', () => {
-    console.log('A user disconnected');
-    for (let [userId, socketId] of connectedUsers) {
-      if (socketId === socket.id) {
-        connectedUsers.delete(userId);
-        break;
-      }
-    }
-  });
+//   // Handle disconnection and remove user from connected users list
+//   socket.on('disconnect', () => {
+//     console.log('A user disconnected');
+//     for (let [userId, socketId] of connectedUsers) {
+//       if (socketId === socket.id) {
+//         connectedUsers.delete(userId);
+//         break;
+//       }
+//     }
+//   });
 
-  // // Handle game logic and events here
-  // socket.on('move', (cellIndex) => {
-  //   console.log('Move',cellIndex);
-  //   // Handle move logic here
-  //   // Emit 'update' event with updated board state
-  //   // io.emit('update', updatedBoard);
-  //   // // Check for game over condition
-  //   // if (gameOver) {
-  //   //   // Emit 'gameOver' event
-  //   //   io.emit('gameOver');
-  //   // }
-  // });
+//   // // Handle game logic and events here
+//   // socket.on('move', (cellIndex) => {
+//   //   console.log('Move',cellIndex);
+//   //   // Handle move logic here
+//   //   // Emit 'update' event with updated board state
+//   //   // io.emit('update', updatedBoard);
+//   //   // // Check for game over condition
+//   //   // if (gameOver) {
+//   //   //   // Emit 'gameOver' event
+//   //   //   io.emit('gameOver');
+//   //   // }
+//   // });
 
-  // socket.on('disconnect', () => {
-  //   console.log('User disconnected');
-  //   // Emit 'playerDisconnected' event
-  //   io.emit('playerDisconnected');
-  // });
-});
+//   // socket.on('disconnect', () => {
+//   //   console.log('User disconnected');
+//   //   // Emit 'playerDisconnected' event
+//   //   io.emit('playerDisconnected');
+//   // });
+// });
 
-function isUserOnline(userId) {
-  console.log('isUserOnline', userId);
-  return connectedUsers.has(userId);
-}
+// function isUserOnline(userId) {
+//   console.log('isUserOnline', userId);
+//   return connectedUsers.has(userId);
+// }
 
 // Example usage
 // Start the server

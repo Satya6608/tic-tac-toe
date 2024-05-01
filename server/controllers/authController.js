@@ -101,7 +101,7 @@ const editUser = async (req, res) => {
     res.json({
       success: true,
       message: "User updated successfully",
-      user: { _id: user._id, email: user.email, username: user.username },
+      user: { _id: user._id, email: user.email, username: user.username, image: user.image},
     });
   } catch (error) {
     console.error(error);
@@ -119,8 +119,19 @@ const allUsers = async (req, res) => {
       }
     : {};
 
-  const users = await User.find(keyword)
-  res.send(users);
-}
+  // Exclude the password field from the response
+  const projection = { password: 0 }; // Exclude the password field
+  const loggedInUserId = req.query.userId; // Assuming you have access to the logged-in user's ID
+
+  try {
+    const users = await User.find({ ...keyword, _id: { $ne: loggedInUserId } }, projection);
+    res.send(users);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).send("Error fetching users");
+  }
+};
+
+
 
 module.exports = { signup, login, editUser, allUsers };

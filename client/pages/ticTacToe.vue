@@ -120,6 +120,18 @@ const handleClick = (i, j) => {
 const getRandomNumber = () => {
   return Math.random();
 };
+
+// const joinGame = () =>{
+//       // Emit join game event with user ID
+//       const userId = getUserId(); // Implement this function to get user ID
+//       this.socket.emit('joinGame', userId);
+//     }
+const makeMove = (move) => {
+      // Emit player move event with move data
+      this.socket.emit('makeMove', move);
+    }
+
+
 const setGameData = async() => {
   socket.on('update', (updatedBoard) => {
 });
@@ -165,7 +177,13 @@ watch(winner, async ()=>{
   }, 3000);
 })
 onMounted(async () => {
-  if(!oponentPlayer.value) router.push('/profile')
+  // if(!oponentPlayer.value) router.push('/profile');
+  socket.on('startGame', ({ opponent }) => {
+    console.log("Start", opponent);
+      // opponent.value = opponent;
+      // this.gameStarted = true;
+    });
+    // joinGame();
   const randomNumber1 = getRandomNumber();
   const randomNumber2 = getRandomNumber();
     if (randomNumber1 < randomNumber2) {

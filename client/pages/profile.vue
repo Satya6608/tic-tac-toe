@@ -36,9 +36,7 @@
             @input="searchUser()"
           />
         </div>
-        <div class="buttons options !w-full" v-if="searchedPlayer" style="
-    display: block;
-    position: absolute; top:25px">
+        <div class="!block buttons options !w-full absolute" v-if="searchedPlayer && openentPlayer">
           <button
             class="w-full !flex-row !justify-start"
             v-for="(player, i) in searchedPlayer"
@@ -46,7 +44,7 @@
             @click="joinRoom(player)"
           >
     <img class="w-8 h-8 rounded-full" :src="player.image"/>
-          {{player.username}}
+          {{player.username}} <span v-if="player.online" class="ml-10 onlineUser absolute right-3"></span>
           </button>
         </div>
         <!-- <div class="buttons options !w-full mt-4">
@@ -92,13 +90,16 @@ const selectOponent = () => {
 //   localStorage.setItem("openentPlayer", newValue);
 // });
 const joinRoom = (player) => {
-  gameStore.setOponentPlayer(player?.username);
+  console.log("joinRoom", player._id)
+  const userId = player?._id; // Implement this function to get user ID
   router.push("/tictactoe");
+  socket.emit('joinGame', userId);
+  // gameStore.setOponentPlayer(player?.username);
 };
 const searchUser = () => {
   if (openentPlayer.value.length > 0) {
     axios
-        .get(`http://localhost:7000/api/?search=${openentPlayer.value}`)
+        .get(`http://localhost:7000/api/?search=${openentPlayer.value}&userId=${user?.value?._id}`)
         .then((res) => {
           console.log(res.data);
           // if (res.data.length > 0) {
@@ -242,5 +243,14 @@ onMounted(async () => {
   justify-content: center;
   align-items: center;
   flex-direction: column;
+}
+.onlineUser::before{
+  content: "";
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: green;
+  margin-right: 10px;
 }
 </style>
