@@ -135,7 +135,6 @@ const makeMove = (move) => {
 const setGameData = async() => {
   socket.on('update', (updatedBoard) => {
 });
-
 // Listen for game over event
 socket.on('gameOver', () => {
   // Show game over message
