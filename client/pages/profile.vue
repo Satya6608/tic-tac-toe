@@ -92,8 +92,8 @@ const selectOponent = () => {
 const joinRoom = (player) => {
   console.log("joinRoom", player._id)
   const userId = player?._id; // Implement this function to get user ID
-  router.push("/tictactoe");
   socket.emit('joinGame', userId);
+  router.push("/tictactoe");
   // gameStore.setOponentPlayer(player?.username);
 };
 const searchUser = () => {
@@ -112,6 +112,17 @@ const searchUser = () => {
 };
 onMounted(async () => {
   if (!user) return router.push("/");
+  socket.on('startGame', ({ opponent }) => {
+  console.log("Start", opponent);
+  axios
+        .get(`http://localhost:7000/api/${opponent}`)
+        .then((res) => {
+          console.log(res.data);
+          gameStore.setOponentPlayer(res.data.username);
+        });
+    // opponent.value = opponent;
+    // this.gameStarted = true;
+  });
   await userStore.fetchItems(user?.value._id);
   socket.emit("authenticate", user?.value._id);
   clearTimeout(searchUser)

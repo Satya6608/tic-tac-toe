@@ -9,7 +9,7 @@ export const useGameStore = defineStore("gameStore", () => {
     const authStore = useAuthStore()
     const { user } = storeToRefs(authStore)
   	const history =ref([
-  		{squares: Array(9).fill(null),winner:null,player:'X'}
+  		{squares: Array(9).fill(''),winner:null,player:'X'}
   	])
   	const stepNo = ref(0)
     const winner = ref(null)
@@ -27,7 +27,7 @@ export const useGameStore = defineStore("gameStore", () => {
 
     const reset = ()=> {
     history.value = [
-            {squares: Array(9).fill(null),winner:null}
+            {squares: Array(9).fill(''),winner:null}
         ]
     stepNo.value = 0
     currentPlayer.value = winner.value ? winner.value : currentPlayer.value

@@ -5,7 +5,7 @@
         <h1>tic-tac-toe 💜</h1>
       </div>
       <div v-if="!winner && history.length !== 10">
-        <b>{{ currentPlayer }}</b>'s Turn 
+        <b>{{ currentPlayer }}</b>'s Turn
       </div>
       <div v-else-if="winner">
         Winner <b>{{ winner }}</b>
@@ -84,6 +84,7 @@ const calculateWinner = function (squares) {
 };
 
 const getVal = (i, j) => {
+  console.log(i, j, "getVal")
   const idx = 3 * (i - 1) + (j - 1);
   return history.value[stepNo.value]["squares"][idx];
 };
@@ -94,24 +95,25 @@ const resetData = () => {
 
 const handleClick = (i, j) => {
   const idx = 3 * (i - 1) + (j - 1);
-  socket.emit("move", idx);
+  // socket.emit("move", idx);
   let ghistory = history.value.slice(0, stepNo.value + 1);
   let current = ghistory[ghistory.length - 1];
   let squares = current.squares.slice();
   if (current.winner || squares[idx]) {
-    alert("winner" + current.winner);
+    // alert("winner" + current.winner);
     return;
   }
-  squares[idx] = currentPlayer.value;
+  squares[idx] = currentPlayer.value == user?.value?.username ? "O" : "X";
 
   let winner = calculateWinner(squares);
   let payload = {
     squares: squares,
     winner: winner,
     player:
-      currentPlayer.value == user?.value?.username ? oponentPlayer : user?.value.username,
+      currentPlayer.value == user?.value?.username ? "O" : "X",
   };
   gameStore.addHistory(ghistory.concat([payload]));
+  makeMove(i, j)
   if (winner) {
     gameStore.setWinner(winner);
   }
@@ -122,14 +124,14 @@ const getRandomNumber = () => {
 };
 
 // const joinGame = () =>{
-//       // Emit join game event with user ID
-//       const userId = getUserId(); // Implement this function to get user ID
-//       this.socket.emit('joinGame', userId);
-//     }
-const makeMove = (move) => {
-      // Emit player move event with move data
-      this.socket.emit('makeMove', move);
-    }
+//   // Emit join game event with user ID
+//   const userId = user?.value?._id; // Implement this function to get user ID
+//   socket.emit('joinGame', userId);
+// }
+const makeMove = (i, j) => {
+  // Emit player move event with move data
+  socket.emit('makeMove', i, j);
+}
 
 
 const setGameData = async() => {
@@ -182,16 +184,13 @@ onMounted(async () => {
       // opponent.value = opponent;
       // this.gameStarted = true;
     });
+    socket.on('gameStateUpdated', (updatedGameStatei, updatedGameStatej) => {
+      // Update game UI based on the received game state
+      console.log(updatedGameStatei, 'gameStateUpdated', updatedGameStatej)
+      handleClick(updatedGameStatei, updatedGameStatej)
+      // this.gameState = updatedGameState;
+    });
     // joinGame();
-  const randomNumber1 = getRandomNumber();
-  const randomNumber2 = getRandomNumber();
-    if (randomNumber1 < randomNumber2) {
-      await gameStore.changePlayer(user?.value?.username);
-    } else if (randomNumber1 > randomNumber2) {
-      await gameStore.changePlayer(oponentPlayer.value)
-    } else {
-      await gameStore.changePlayer(user?.value?.username);
-    }
 });
 </script>
 

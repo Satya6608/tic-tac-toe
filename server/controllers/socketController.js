@@ -27,20 +27,26 @@ function handleSocketConnection(io) {
 
         // Check if another player is available to pair
         if (connectedUsers.size === 2) {
-        const players = Array.from(connectedUsers.keys());
+        const players = Array.from(connectedUsers.values());
+        const playersId = Array.from(connectedUsers.keys());
         const player1 = players[0];
         const player2 = players[1];
+        const player1Id = playersId[0];
+        const player2Id = playersId[1];
         console.log('Players:', player1, player2);
-        io.to(player1).emit('startGame', { opponent: player2 });
-        io.to(player2).emit('startGame', { opponent: player1 });
+        io.to(player1).emit('startGame', { opponent: player2Id });
+        io.to(player2).emit('startGame', { opponent: player1Id });
         }
     });
 
     // Handle player move
-    socket.on('makeMove', (move) => {
-        // Implement game logic to process the move
-        // Update game state
-        // Emit updated game state to both players
+    socket.on('makeMove', (i, j) => {
+      console.log('Move:', i, j);
+      const updatedGameStatei = i; // Example function to process move
+      const updatedGameStatej = j; // Example function to process move
+
+      // Emit updated game state to both players
+      io.emit('gameStateUpdated', updatedGameStatei, updatedGameStatej);
     });
 
     // socket.on('logout', () => {

@@ -8,9 +8,7 @@ export default defineNuxtPlugin(nuxtApp => {
   // Get data from sessionStorage
   const user = JSON.parse(localStorage.getItem('user'));
   const token = localStorage.getItem('token');
-  const oppPlayer = localStorage.getItem('openentPlayer');
   if(token && user){
     authStore.login(token, user);
-    gameStore.setOponentPlayer(oppPlayer);
   }
 });
