@@ -77,7 +77,7 @@ const calculateWinner = function (squares) {
   for (let i = 0; i < lines.length; i++) {
     const [a, b, c] = lines[i];
     if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-      return squares[a];
+      return squares[a] == "O" ? user?.value?.username : oponentPlayer.value;
     }
   }
   return null;
@@ -135,17 +135,6 @@ const makeMove = (i, j) => {
 
 
 const setGameData = async() => {
-  socket.on('update', (updatedBoard) => {
-});
-// Listen for game over event
-socket.on('gameOver', () => {
-  // Show game over message
-});
-
-// Listen for player disconnected event
-socket.on('playerDisconnected', () => {
-  // Handle player disconnection
-});
    try {
     const res = await axios.post("http://localhost:7000/api/game", {
       user: user?.value?._id,
