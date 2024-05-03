@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "nuxt --openssl-legacy-provider build",
+    "start": "node .output/server/index.mjs",
     "dev": "nuxt dev",
     "generate": "nuxt --openssl-legacy-provider generate",
     "preview": "nuxt --openssl-legacy-provider preview",
