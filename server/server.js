@@ -37,55 +37,21 @@ const io = socketIo(server, {
 
 handleSocketConnection(io)
 
-// const connectedUsers = new Map();
-// Handle Socket.IO connections
-// io.on('connection', (socket) => {
-//   console.log('A user connected',socket.id);
+// --------------------------deployment------------------------------
 
-//   socket.on('authenticate', (userId) => {
-//     console.log('User authenticated', userId);
-//     connectedUsers.set(userId, socket.id);
-//     console.log('connectedUsers',connectedUsers);
-//     console.log(isUserOnline(userId));
-//   });
+const __dirname1 = path.resolve();
 
-//   // Handle disconnection and remove user from connected users list
-//   socket.on('disconnect', () => {
-//     console.log('A user disconnected');
-//     for (let [userId, socketId] of connectedUsers) {
-//       if (socketId === socket.id) {
-//         connectedUsers.delete(userId);
-//         break;
-//       }
-//     }
-//   });
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname1, "/client/.output/server")));
 
-//   // // Handle game logic and events here
-//   // socket.on('move', (cellIndex) => {
-//   //   console.log('Move',cellIndex);
-//   //   // Handle move logic here
-//   //   // Emit 'update' event with updated board state
-//   //   // io.emit('update', updatedBoard);
-//   //   // // Check for game over condition
-//   //   // if (gameOver) {
-//   //   //   // Emit 'gameOver' event
-//   //   //   io.emit('gameOver');
-//   //   // }
-//   // });
-
-//   // socket.on('disconnect', () => {
-//   //   console.log('User disconnected');
-//   //   // Emit 'playerDisconnected' event
-//   //   io.emit('playerDisconnected');
-//   // });
-// });
-
-// function isUserOnline(userId) {
-//   console.log('isUserOnline', userId);
-//   return connectedUsers.has(userId);
-// }
-
-// Example usage
+  app.get("*", (req, res) =>
+    res.sendFile(path.resolve(__dirname1, "client", ".output/server", "index.mjs"))
+  );
+} else {
+  app.get("/", (req, res) => {
+    res.send("API is running..");
+  });
+}
 // Start the server
 server.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
