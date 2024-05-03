@@ -7,6 +7,7 @@ const authRoutes = require("./routes/authRoutes");
 const gameRoutes = require("./routes/gameRoutes");
 const { connectToDatabase } = require("./utils/dbConnection");
 const { handleSocketConnection } = require('./controllers/socketController');
+const path = require("path");
 const env = require("dotenv");
 
 env.config();
