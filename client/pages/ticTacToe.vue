@@ -47,6 +47,8 @@ import { useGameStore } from "~/store/gameStore.js";
 import { storeToRefs } from "pinia";
 import { useAuthStore } from "~/store/auth.js";
 import { io } from 'socket.io-client';
+import { useUserStore } from "~/store/users.js";
+const userStore = useUserStore();
 const authStore = useAuthStore();
 const { user } = storeToRefs(authStore);
 
@@ -77,7 +79,7 @@ const calculateWinner = function (squares) {
   for (let i = 0; i < lines.length; i++) {
     const [a, b, c] = lines[i];
     if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-      return squares[a] == "O" ? user?.value?.username : oponentPlayer.value;
+      return squares[a]
     }
   }
   return null;
@@ -103,14 +105,14 @@ const handleClick = (i, j) => {
     // alert("winner" + current.winner);
     return;
   }
-  squares[idx] = currentPlayer.value == user?.value?.username ? "O" : "X";
+  squares[idx] = currentPlayer.value;
 
   let winner = calculateWinner(squares);
   let payload = {
     squares: squares,
     winner: winner,
     player:
-      currentPlayer.value == user?.value?.username ? "O" : "X",
+      currentPlayer.value,
   };
   gameStore.addHistory(ghistory.concat([payload]));
   makeMove(i, j)
@@ -167,18 +169,29 @@ watch(winner, async ()=>{
   }, 3000);
 })
 onMounted(async () => {
-  // if(!oponentPlayer.value) router.push('/profile');
-  socket.on('startGame', ({ opponent }) => {
-    console.log("Start", opponent);
-      // opponent.value = opponent;
-      // this.gameStarted = true;
-    });
+  var oppPlayer = localStorage.getItem('oppPlayer')
+  if(!oppPlayer) router.push('/profile');
+  if(oppPlayer){
+    socket.on('startGame', ({ oppPlayer }) => {
+      console.log("Start", oppPlayer);
+      axios
+            .get(`http://localhost:7000/api/${oppPlayer}`)
+            .then((res) => {
+              console.log(res.data);
+              gameStore.setOponentPlayer(res.data.username);
+            });
+        // opponent.value = opponent;
+        // this.gameStarted = true;
+      });
+    await userStore.fetchItems(user?.value._id);
+  }
     socket.on('gameStateUpdated', (updatedGameStatei, updatedGameStatej) => {
       // Update game UI based on the received game state
       console.log(updatedGameStatei, 'gameStateUpdated', updatedGameStatej)
       handleClick(updatedGameStatei, updatedGameStatej)
       // this.gameState = updatedGameState;
     });
+    socket.emit("authenticate", user?.value._id);
     // joinGame();
 });
 </script>
@@ -239,22 +252,6 @@ button:hover {
   color: #dcd6f7;
 }
 
-.cell.X {
-  background: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHg9IjBweCIgeT0iMHB4IiB3aWR0aD0iNDgwIiBoZWlnaHQ9IjQ4MCIgdmlld0JveD0iMCwwLDI1NiwyNTYiCnN0eWxlPSJmaWxsOiMwMDAwMDA7Ij4KPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTYuNCwtNi40KSBzY2FsZSgxLjA1LDEuMDUpIj48ZyBmaWxsLW9wYWNpdHk9IjAiIGZpbGw9IiMyNzI5NmQiIGZpbGwtcnVsZT0ibm9uemVybyIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjAiIGZvbnQtZmFtaWx5PSJub25lIiBmb250LXdlaWdodD0ibm9uZSIgZm9udC1zaXplPSJub25lIiB0ZXh0LWFuY2hvcj0ibm9uZSIgc3R5bGU9Im1peC1ibGVuZC1tb2RlOiBub3JtYWwiPjxwYXRoIGQ9Ik02LjA5NTI0LDI0OS45MDQ3NnYtMjQzLjgwOTUyaDI0My44MDk1MnYyNDMuODA5NTJ6IiBpZD0iYmdSZWN0YW5nbGUiPjwvcGF0aD48L2c+PGcgZmlsbD0iIzI3Mjk2ZCIgZmlsbC1ydWxlPSJub256ZXJvIiBzdHJva2U9Im5vbmUiIHN0cm9rZS13aWR0aD0iMSIgc3Ryb2tlLWxpbmVjYXA9ImJ1dHQiIHN0cm9rZS1saW5lam9pbj0ibWl0ZXIiIHN0cm9rZS1taXRlcmxpbWl0PSIxMCIgc3Ryb2tlLWRhc2hhcnJheT0iIiBzdHJva2UtZGFzaG9mZnNldD0iMCIgZm9udC1mYW1pbHk9Im5vbmUiIGZvbnQtd2VpZ2h0PSJub25lIiBmb250LXNpemU9Im5vbmUiIHRleHQtYW5jaG9yPSJub25lIiBzdHlsZT0ibWl4LWJsZW5kLW1vZGU6IG5vcm1hbCI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCwyLjY2NjY3KSBzY2FsZSg1LjMzMzMzLDUuMzMzMzMpIj48cGF0aCBkPSJNMTQsMjVsOSwtM3YtMTVsLTksLTZ6Ij48L3BhdGg+PHBhdGggZD0iTTE0LDQxbDksNXYtMjJsLTksM3oiPjwvcGF0aD48cGF0aCBkPSJNMzQsMjVsLTksLTN2LTE1bDksLTZ6Ij48L3BhdGg+PHBhdGggZD0iTTM0LDQxbC05LDV2LTIybDksM3oiPjwvcGF0aD48L2c+PC9nPjwvZz4KPC9zdmc+")
-    50% 50% no-repeat;
-  background-size: 80px;
-  background-color: #fff;
-  display: flex;
-}
-
-.cell.O {
-  background: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHg9IjBweCIgeT0iMHB4IiB3aWR0aD0iNDgwIiBoZWlnaHQ9IjQ4MCIgdmlld0JveD0iMCwwLDI1NiwyNTYiCnN0eWxlPSJmaWxsOiMwMDAwMDA7Ij4KPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTI1LjYsLTI1LjYpIHNjYWxlKDEuMiwxLjIpIj48ZyBmaWxsLW9wYWNpdHk9IjAiIGZpbGw9IiNkZGRkZGQiIGZpbGwtcnVsZT0ibm9uemVybyIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjAiIGZvbnQtZmFtaWx5PSJub25lIiBmb250LXdlaWdodD0ibm9uZSIgZm9udC1zaXplPSJub25lIiB0ZXh0LWFuY2hvcj0ibm9uZSIgc3R5bGU9Im1peC1ibGVuZC1tb2RlOiBub3JtYWwiPjxwYXRoIGQ9Ik0yMS4zMzMzMywyMzQuNjY2Njd2LTIxMy4zMzMzM2gyMTMuMzMzMzN2MjEzLjMzMzMzeiIgaWQ9ImJnUmVjdGFuZ2xlIj48L3BhdGg+PC9nPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0ibm9uemVybyIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im5vbmUiIHN0cm9rZS1taXRlcmxpbWl0PSIxMCIgc3Ryb2tlLWRhc2hhcnJheT0iIiBzdHJva2UtZGFzaG9mZnNldD0iMCIgZm9udC1mYW1pbHk9Im5vbmUiIGZvbnQtd2VpZ2h0PSJub25lIiBmb250LXNpemU9Im5vbmUiIHRleHQtYW5jaG9yPSJub25lIiBzdHlsZT0ibWl4LWJsZW5kLW1vZGU6IG5vcm1hbCI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCw0NC40OCkgc2NhbGUoNi40LDYuNCkiPjxwYXRoIGQ9Ik0xOC41LDIzLjU5MWwtOSwyLjkwOXYtMjZsOS4wMDYsNnoiIGZpbGw9IiMyNzI5NmQiIHN0cm9rZT0ibm9uZSIgc3Ryb2tlLWxpbmVqb2luPSJtaXRlciI+PC9wYXRoPjxwYXRoIGQ9Ik0yMS41LDIzLjU5MWw5LDIuOTA5di0yNmwtOSw2eiIgZmlsbD0iIzI3Mjk2ZCIgc3Ryb2tlPSJub25lIiBzdHJva2UtbGluZWpvaW49Im1pdGVyIj48L3BhdGg+PHBhdGggZD0iTTE4LjUsMjMuNTkxbC05LDIuOTA5di0yNmw5LjAwNiw2eiIgZmlsbD0ibm9uZSIgc3Ryb2tlLW9wYWNpdHk9IjAiIHN0cm9rZT0iIzY2Nzk4ZiIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PC9wYXRoPjxwYXRoIGQ9Ik0yMS41LDIzLjU5MWw5LDIuOTA5di0yNmwtOSw2eiIgZmlsbD0ibm9uZSIgc3Ryb2tlLW9wYWNpdHk9IjAiIHN0cm9rZT0iIzY2Nzk4ZiIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PC9wYXRoPjxwYXRoIGQ9Ik0xNy44MTgsMzFoMS4xNzZ2OGgydi04aDEuMTc2bDAuODI0LC0yaC02eiIgZmlsbC1vcGFjaXR5PSIwIiBmaWxsPSIjNjY3OThmIiBzdHJva2U9Im5vbmUiIHN0cm9rZS1saW5lam9pbj0ibWl0ZXIiPjwvcGF0aD48cGF0aCBkPSJNMTIuOTk0LDI5aC0zdjEwaDNjMS4xMDMsMCAyLC0wLjg5NyAyLC0ydi0yYzAsLTAuMzY2IC0wLjEwNiwtMC43MDUgLTAuMjc4LC0xYzAuMTcyLC0wLjI5NSAwLjI3OCwtMC42MzQgMC4yNzgsLTF2LTJjMCwtMS4xMDMgLTAuODk3LC0yIC0yLC0yek0xMS45OTQsMzFoMWwwLjAwMSwyaC0wLjAwMWgtMXpNMTEuOTk0LDM3di0yaDFsMC4wMDEsMnoiIGZpbGwtb3BhY2l0eT0iMCIgZmlsbD0iIzY2Nzk4ZiIgc3Ryb2tlPSJub25lIiBzdHJva2UtbGluZWpvaW49Im1pdGVyIj48L3BhdGg+PHBhdGggZD0iTTI5Ljk5NCwzMnYtMWMwLC0xLjEwMyAtMC44OTcsLTIgLTIsLTJoLTFjLTEuMTAzLDAgLTIsMC44OTcgLTIsMnYxLjQ2NWMwLDAuNjcgMC4zMzMsMS4yOTIgMC44OTEsMS42NjRsMi4xMDksMS40MDZ2MS40NjVoLTF2LTFoLTJ2MWMwLDEuMTAzIDAuODk3LDIgMiwyaDFjMS4xMDMsMCAyLC0wLjg5NyAyLC0ydi0xLjQ2NWMwLC0wLjY3IC0wLjMzMywtMS4yOTIgLTAuODkxLC0xLjY2NGwtMi4xMDksLTEuNDA2di0xLjQ2NWgxdjF6IiBmaWxsLW9wYWNpdHk9IjAiIGZpbGw9IiM2Njc5OGYiIHN0cm9rZT0ibm9uZSIgc3Ryb2tlLWxpbmVqb2luPSJtaXRlciI+PC9wYXRoPjwvZz48L2c+PC9nPgo8L3N2Zz4=")
-    50% 50% no-repeat;
-  background-size: 80px;
-  background-color: #fff;
-  display: flex;
-}
-
 @media (max-width: 600px) {
   .cell {
     width: 60px;
@@ -265,49 +262,6 @@ button:hover {
   #game-board {
     grid-template-columns: repeat(3, 60px);
     grid-template-rows: repeat(3, 60px);
-  }
-
-  .cell.X {
-    background: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHg9IjBweCIgeT0iMHB4IiB3aWR0aD0iNDgwIiBoZWlnaHQ9IjQ4MCIgdmlld0JveD0iMCwwLDI1NiwyNTYiCnN0eWxlPSJmaWxsOiMwMDAwMDA7Ij4KPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTYuNCwtNi40KSBzY2FsZSgxLjA1LDEuMDUpIj48ZyBmaWxsLW9wYWNpdHk9IjAiIGZpbGw9IiMyNzI5NmQiIGZpbGwtcnVsZT0ibm9uemVybyIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjAiIGZvbnQtZmFtaWx5PSJub25lIiBmb250LXdlaWdodD0ibm9uZSIgZm9udC1zaXplPSJub25lIiB0ZXh0LWFuY2hvcj0ibm9uZSIgc3R5bGU9Im1peC1ibGVuZC1tb2RlOiBub3JtYWwiPjxwYXRoIGQ9Ik02LjA5NTI0LDI0OS45MDQ3NnYtMjQzLjgwOTUyaDI0My44MDk1MnYyNDMuODA5NTJ6IiBpZD0iYmdSZWN0YW5nbGUiPjwvcGF0aD48L2c+PGcgZmlsbD0iIzI3Mjk2ZCIgZmlsbC1ydWxlPSJub256ZXJvIiBzdHJva2U9Im5vbmUiIHN0cm9rZS13aWR0aD0iMSIgc3Ryb2tlLWxpbmVjYXA9ImJ1dHQiIHN0cm9rZS1saW5lam9pbj0ibWl0ZXIiIHN0cm9rZS1taXRlcmxpbWl0PSIxMCIgc3Ryb2tlLWRhc2hhcnJheT0iIiBzdHJva2UtZGFzaG9mZnNldD0iMCIgZm9udC1mYW1pbHk9Im5vbmUiIGZvbnQtd2VpZ2h0PSJub25lIiBmb250LXNpemU9Im5vbmUiIHRleHQtYW5jaG9yPSJub25lIiBzdHlsZT0ibWl4LWJsZW5kLW1vZGU6IG5vcm1hbCI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCwyLjY2NjY3KSBzY2FsZSg1LjMzMzMzLDUuMzMzMzMpIj48cGF0aCBkPSJNMTQsMjVsOSwtM3YtMTVsLTksLTZ6Ij48L3BhdGg+PHBhdGggZD0iTTE0LDQxbDksNXYtMjJsLTksM3oiPjwvcGF0aD48cGF0aCBkPSJNMzQsMjVsLTksLTN2LTE1bDksLTZ6Ij48L3BhdGg+PHBhdGggZD0iTTM0LDQxbC05LDV2LTIybDksM3oiPjwvcGF0aD48L2c+PC9nPjwvZz4KPC9zdmc+")
-      50% 50% no-repeat;
-    background-size: 40px;
-    background-color: #fff;
-    display: flex;
-  }
-
-  .cell.O {
-    background: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHg9IjBweCIgeT0iMHB4IiB3aWR0aD0iNDgwIiBoZWlnaHQ9IjQ4MCIgdmlld0JveD0iMCwwLDI1NiwyNTYiCnN0eWxlPSJmaWxsOiMwMDAwMDA7Ij4KPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTI1LjYsLTI1LjYpIHNjYWxlKDEuMiwxLjIpIj48ZyBmaWxsLW9wYWNpdHk9IjAiIGZpbGw9IiNkZGRkZGQiIGZpbGwtcnVsZT0ibm9uemVybyIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjAiIGZvbnQtZmFtaWx5PSJub25lIiBmb250LXdlaWdodD0ibm9uZSIgZm9udC1zaXplPSJub25lIiB0ZXh0LWFuY2hvcj0ibm9uZSIgc3R5bGU9Im1peC1ibGVuZC1tb2RlOiBub3JtYWwiPjxwYXRoIGQ9Ik0yMS4zMzMzMywyMzQuNjY2Njd2LTIxMy4zMzMzM2gyMTMuMzMzMzN2MjEzLjMzMzMzeiIgaWQ9ImJnUmVjdGFuZ2xlIj48L3BhdGg+PC9nPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0ibm9uemVybyIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im5vbmUiIHN0cm9rZS1taXRlcmxpbWl0PSIxMCIgc3Ryb2tlLWRhc2hhcnJheT0iIiBzdHJva2UtZGFzaG9mZnNldD0iMCIgZm9udC1mYW1pbHk9Im5vbmUiIGZvbnQtd2VpZ2h0PSJub25lIiBmb250LXNpemU9Im5vbmUiIHRleHQtYW5jaG9yPSJub25lIiBzdHlsZT0ibWl4LWJsZW5kLW1vZGU6IG5vcm1hbCI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCw0NC40OCkgc2NhbGUoNi40LDYuNCkiPjxwYXRoIGQ9Ik0xOC41LDIzLjU5MWwtOSwyLjkwOXYtMjZsOS4wMDYsNnoiIGZpbGw9IiMyNzI5NmQiIHN0cm9rZT0ibm9uZSIgc3Ryb2tlLWxpbmVqb2luPSJtaXRlciI+PC9wYXRoPjxwYXRoIGQ9Ik0yMS41LDIzLjU5MWw5LDIuOTA5di0yNmwtOSw2eiIgZmlsbD0iIzI3Mjk2ZCIgc3Ryb2tlPSJub25lIiBzdHJva2UtbGluZWpvaW49Im1pdGVyIj48L3BhdGg+PHBhdGggZD0iTTE4LjUsMjMuNTkxbC05LDIuOTA5di0yNmw5LjAwNiw2eiIgZmlsbD0ibm9uZSIgc3Ryb2tlLW9wYWNpdHk9IjAiIHN0cm9rZT0iIzY2Nzk4ZiIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PC9wYXRoPjxwYXRoIGQ9Ik0yMS41LDIzLjU5MWw5LDIuOTA5di0yNmwtOSw2eiIgZmlsbD0ibm9uZSIgc3Ryb2tlLW9wYWNpdHk9IjAiIHN0cm9rZT0iIzY2Nzk4ZiIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PC9wYXRoPjxwYXRoIGQ9Ik0xNy44MTgsMzFoMS4xNzZ2OGgydi04aDEuMTc2bDAuODI0LC0yaC02eiIgZmlsbC1vcGFjaXR5PSIwIiBmaWxsPSIjNjY3OThmIiBzdHJva2U9Im5vbmUiIHN0cm9rZS1saW5lam9pbj0ibWl0ZXIiPjwvcGF0aD48cGF0aCBkPSJNMTIuOTk0LDI5aC0zdjEwaDNjMS4xMDMsMCAyLC0wLjg5NyAyLC0ydi0yYzAsLTAuMzY2IC0wLjEwNiwtMC43MDUgLTAuMjc4LC0xYzAuMTcyLC0wLjI5NSAwLjI3OCwtMC42MzQgMC4yNzgsLTF2LTJjMCwtMS4xMDMgLTAuODk3LC0yIC0yLC0yek0xMS45OTQsMzFoMWwwLjAwMSwyaC0wLjAwMWgtMXpNMTEuOTk0LDM3di0yaDFsMC4wMDEsMnoiIGZpbGwtb3BhY2l0eT0iMCIgZmlsbD0iIzY2Nzk4ZiIgc3Ryb2tlPSJub25lIiBzdHJva2UtbGluZWpvaW49Im1pdGVyIj48L3BhdGg+PHBhdGggZD0iTTI5Ljk5NCwzMnYtMWMwLC0xLjEwMyAtMC44OTcsLTIgLTIsLTJoLTFjLTEuMTAzLDAgLTIsMC44OTcgLTIsMnYxLjQ2NWMwLDAuNjcgMC4zMzMsMS4yOTIgMC44OTEsMS42NjRsMi4xMDksMS40MDZ2MS40NjVoLTF2LTFoLTJ2MWMwLDEuMTAzIDAuODk3LDIgMiwyaDFjMS4xMDMsMCAyLC0wLjg5NyAyLC0ydi0xLjQ2NWMwLC0wLjY3IC0wLjMzMywtMS4yOTIgLTAuODkxLC0xLjY2NGwtMi4xMDksLTEuNDA2di0xLjQ2NWgxdjF6IiBmaWxsLW9wYWNpdHk9IjAiIGZpbGw9IiM2Njc5OGYiIHN0cm9rZT0ibm9uZSIgc3Ryb2tlLWxpbmVqb2luPSJtaXRlciI+PC9wYXRoPjwvZz48L2c+PC9nPgo8L3N2Zz4=")
-      50% 50% no-repeat;
-    background-size: 40px;
-    background-color: #fff;
-    display: flex;
-  }
-}
-
-@media (max-width: 230px) {
-  body {
-    background: white;
-  }
-
-  #game-board {
-    display: none;
-  }
-
-  button {
-    display: none;
-  }
-  h1 {
-    display: none;
-  }
-  .game-message {
-    display: none;
-  }
-
-  h1#hiddenMessage {
-    display: flex;
-    color: black;
-    font-size: 24px;
-    font-family: Arial, Helvetica, sans-serif;
   }
 }
 </style>

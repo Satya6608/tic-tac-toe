@@ -1,11 +1,5 @@
 // socketHandlers.js
 const User = require('../models/user'); // Assuming User model is defined in a separate file
-
-function getUserIdFromSocket(socket) {
-    // Implement logic to extract user ID from socket
-    // For example, if you're using socket authentication and passing user ID in headers:
-    return socket.request.headers.userId;
-  }
   const connectedUsers = new Map();
 function handleSocketConnection(io) {
   io.on('connection', (socket) => {
@@ -30,12 +24,13 @@ function handleSocketConnection(io) {
         const players = Array.from(connectedUsers.values());
         const playersId = Array.from(connectedUsers.keys());
         const player1 = players[0];
+        const currentPlayer = playersId[1];
         const player2 = players[1];
         const player1Id = playersId[0];
         const player2Id = playersId[1];
         console.log('Players:', player1, player2);
-        io.to(player1).emit('startGame', { opponent: player2Id });
-        io.to(player2).emit('startGame', { opponent: player1Id });
+        io.to(player1).emit('startGame', { opponent: player2Id, currentPlayer : currentPlayer});
+        io.to(player2).emit('startGame', { opponent: player1Id, currentPlayer : currentPlayer});
         }
     });
 

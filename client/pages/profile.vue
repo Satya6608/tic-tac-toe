@@ -112,16 +112,21 @@ const searchUser = () => {
 };
 onMounted(async () => {
   if (!user) return router.push("/");
-  socket.on('startGame', ({ opponent }) => {
+  socket.on('startGame', ({ opponent, currentPlayer }) => {
   console.log("Start", opponent);
+  localStorage.setItem("oppPlayer", opponent)
   axios
         .get(`http://localhost:7000/api/${opponent}`)
         .then((res) => {
           console.log(res.data);
           gameStore.setOponentPlayer(res.data.username);
         });
-    // opponent.value = opponent;
-    // this.gameStarted = true;
+  axios
+        .get(`http://localhost:7000/api/${currentPlayer}`)
+        .then((res) => {
+          console.log(res.data);
+          gameStore.changePlayer(res.data.username)
+        });
   });
   await userStore.fetchItems(user?.value._id);
   socket.emit("authenticate", user?.value._id);
