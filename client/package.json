@@ -3,10 +3,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "nuxt build",
+    "build": "nuxt --openssl-legacy-provider build",
     "dev": "nuxt dev",
-    "generate": "nuxt generate",
-    "preview": "nuxt preview",
+    "generate": "nuxt --openssl-legacy-provider generate",
+    "preview": "nuxt --openssl-legacy-provider preview",
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
