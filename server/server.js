@@ -31,7 +31,7 @@ const server = http.createServer(app);
 // Initialize Socket.IO
 const io = socketIo(server, {
   cors: {
-    origin: 'http://localhost:3000',
+    origin: ['http://localhost:3000', 'https://tictactoesaty.netlify.app'] ,
     methods: ['GET', 'POST', 'PUT'] // Adjust the methods as needed
   }
 });
