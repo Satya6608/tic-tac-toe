@@ -43,7 +43,7 @@
             :key="i"
             @click="joinRoom(player)"
           >
-    <img class="w-8 h-8 rounded-full" :src="player.image"/>
+    <img :src="player.image" style="width:32px; height:32px; border-radius:50%;"/>
           {{player.username}} <span v-if="player.online" class="ml-10 onlineUser absolute right-3"></span>
           </button>
         </div>
