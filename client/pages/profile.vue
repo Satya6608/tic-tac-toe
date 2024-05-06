@@ -90,7 +90,6 @@ const selectOponent = () => {
 //   localStorage.setItem("openentPlayer", newValue);
 // });
 const joinRoom = (player) => {
-  console.log("joinRoom", player._id)
   const userId = player?._id; // Implement this function to get user ID
   socket.emit('joinGame', userId);
   router.push("/tictactoe");
@@ -101,7 +100,6 @@ const searchUser = () => {
     axios
         .get(`http://localhost:7000/api/?search=${openentPlayer.value}&userId=${user?.value?._id}`)
         .then((res) => {
-          console.log(res.data);
           // if (res.data.length > 0) {
             searchedPlayer.value = res.data
             //   gameStore.setOponentPlayer(res.data[0].username);
@@ -113,18 +111,15 @@ const searchUser = () => {
 onMounted(async () => {
   if (!user) return router.push("/");
   socket.on('startGame', ({ opponent, currentPlayer }) => {
-  console.log("Start", opponent);
   localStorage.setItem("oppPlayer", opponent)
   axios
         .get(`http://localhost:7000/api/${opponent}`)
         .then((res) => {
-          console.log(res.data);
           gameStore.setOponentPlayer(res.data.username);
         });
   axios
         .get(`http://localhost:7000/api/${currentPlayer}`)
         .then((res) => {
-          console.log(res.data);
           gameStore.changePlayer(res.data.username)
         });
   });

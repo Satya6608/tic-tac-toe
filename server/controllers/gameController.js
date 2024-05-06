@@ -24,8 +24,6 @@ const newGame = async (req, res) => {
 
 const getGame = async (req, res) => {
     const userId = req.params.id;
-    console.log(userId, req.params)
-    
     Game.find({ user: userId })
     .populate('user', '-password') // Populate the 'user' field to get the user's details
     .exec()

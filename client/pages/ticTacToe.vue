@@ -86,7 +86,6 @@ const calculateWinner = function (squares) {
 };
 
 const getVal = (i, j) => {
-  console.log(i, j, "getVal")
   const idx = 3 * (i - 1) + (j - 1);
   return history.value[stepNo.value]["squares"][idx];
 };
@@ -95,8 +94,9 @@ const resetData = () => {
   gameStore.reset();
 };
 
-const handleClick = (i, j) => {
-  const idx = 3 * (i - 1) + (j - 1);
+const handleClick = (i, j, from) => {
+  if(currentPlayer.value == user?.value.username || from == "server"){
+    const idx = 3 * (i - 1) + (j - 1);
   // socket.emit("move", idx);
   let ghistory = history.value.slice(0, stepNo.value + 1);
   let current = ghistory[ghistory.length - 1];
@@ -120,6 +120,7 @@ const handleClick = (i, j) => {
     gameStore.setWinner(winner);
   }
   gameStore.togglePlayer(currentPlayer.value);
+  }else return;
 };
 const getRandomNumber = () => {
   return Math.random();
@@ -145,12 +146,7 @@ const setGameData = async() => {
       winner: winner?.value,
     });
     if (res.data) {
-      console.log(res.data);
-      // const token = res.data.token;
-      // const user = res.data.user;
-      // // authStore.login(token, user);
-      // // router.push("/");
-      // reset()
+      console.log(res.data)
     } else {
       throw new Error(res.data.message);
     }
@@ -161,7 +157,6 @@ const setGameData = async() => {
 
 watch(winner, async ()=>{
   if(winner.value){
-    console.log(winner.value, "winnersdfghjkljhgfdsfghj");
     setGameData()
   }
   setTimeout(() => {
@@ -173,11 +168,9 @@ onMounted(async () => {
   if(!oppPlayer) router.push('/profile');
   if(oppPlayer){
     socket.on('startGame', ({ oppPlayer }) => {
-      console.log("Start", oppPlayer);
       axios
             .get(`http://localhost:7000/api/${oppPlayer}`)
             .then((res) => {
-              console.log(res.data);
               gameStore.setOponentPlayer(res.data.username);
             });
         // opponent.value = opponent;
@@ -186,10 +179,7 @@ onMounted(async () => {
     await userStore.fetchItems(user?.value._id);
   }
     socket.on('gameStateUpdated', (updatedGameStatei, updatedGameStatej) => {
-      // Update game UI based on the received game state
-      console.log(updatedGameStatei, 'gameStateUpdated', updatedGameStatej)
-      handleClick(updatedGameStatei, updatedGameStatej)
-      // this.gameState = updatedGameState;
+      handleClick(updatedGameStatei, updatedGameStatej, "server")
     });
     socket.emit("authenticate", user?.value._id);
     // joinGame();

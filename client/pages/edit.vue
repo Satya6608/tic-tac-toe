@@ -46,7 +46,6 @@ const reset = () => {
 }
 
 const edit = async () => {
-  console.log("Edit", username.value, email.value)
   if (username.value && email.value) {
       try {
         const res = await axios.put(`http://localhost:7000/api/edit/${user?.value._id}`, {
@@ -54,7 +53,6 @@ const edit = async () => {
           email: email.value,
         });
         if (res) {
-          console.log(res);
           const tok = localStorage.getItem("token") 
           authStore.login(tok, res.data.user)
           router.push("/profile");
