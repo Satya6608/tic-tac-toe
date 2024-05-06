@@ -4,6 +4,7 @@ import { useAuthStore } from "./auth";
 export const useGameStore = defineStore("gameStore", () => {
     const currentPlayer = ref('')
     const oponentPlayer = ref('')
+    const oponentPlayerId = ref('')
     const userPlayer = ref('')
 
     const authStore = useAuthStore()
@@ -21,8 +22,9 @@ export const useGameStore = defineStore("gameStore", () => {
     currentPlayer.value = currentPlayer.value == user?.value?.username ? oponentPlayer.value : user?.value?.username
     }
 
-    const setOponentPlayer = (payload) => {
-        oponentPlayer.value = payload
+    const setOponentPlayer = (name, id) => {
+        oponentPlayer.value = name;
+        oponentPlayerId.value = id;
     }
 
     const reset = ()=> {

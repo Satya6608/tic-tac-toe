@@ -164,20 +164,7 @@ watch(winner, async ()=>{
   }, 3000);
 })
 onMounted(async () => {
-  var oppPlayer = localStorage.getItem('oppPlayer')
-  if(!oppPlayer) router.push('/profile');
-  if(oppPlayer){
-    socket.on('startGame', ({ oppPlayer }) => {
-      axios
-            .get(`https://tictactoeapis.onrender.com/api/${oppPlayer}`)
-            .then((res) => {
-              gameStore.setOponentPlayer(res.data.username);
-            });
-        // opponent.value = opponent;
-        // this.gameStarted = true;
-      });
-    await userStore.fetchItems(user?.value._id);
-  }
+  if(!oponentPlayer.value) router.push('/profile');
     socket.on('gameStateUpdated', (updatedGameStatei, updatedGameStatej) => {
       handleClick(updatedGameStatei, updatedGameStatej, "server")
     });

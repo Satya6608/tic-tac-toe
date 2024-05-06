@@ -111,11 +111,10 @@ const searchUser = () => {
 onMounted(async () => {
   if (!user) return router.push("/");
   socket.on('startGame', ({ opponent, currentPlayer }) => {
-  localStorage.setItem("oppPlayer", opponent)
   axios
         .get(`https://tictactoeapis.onrender.com/api/${opponent}`)
         .then((res) => {
-          gameStore.setOponentPlayer(res.data.username);
+          gameStore.setOponentPlayer(res.data.username, opponent);
         });
   axios
         .get(`https://tictactoeapis.onrender.com/api/${currentPlayer}`)
