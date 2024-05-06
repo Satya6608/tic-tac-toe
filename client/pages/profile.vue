@@ -67,7 +67,7 @@ import { ref } from "vue";
 import auth from "~/middleware/auth.js";
 import { useRouter } from "vue-router";
 import { io } from "socket.io-client";
-const socket = io("http://localhost:7000");
+const socket = io("https://tictactoeapis.onrender.com");
 
 const router = useRouter();
 definePageMeta({
@@ -98,7 +98,7 @@ const joinRoom = (player) => {
 const searchUser = () => {
   if (openentPlayer.value.length > 0) {
     axios
-        .get(`http://localhost:7000/api/?search=${openentPlayer.value}&userId=${user?.value?._id}`)
+        .get(`https://tictactoeapis.onrender.com/api/?search=${openentPlayer.value}&userId=${user?.value?._id}`)
         .then((res) => {
           // if (res.data.length > 0) {
             searchedPlayer.value = res.data
@@ -113,12 +113,12 @@ onMounted(async () => {
   socket.on('startGame', ({ opponent, currentPlayer }) => {
   localStorage.setItem("oppPlayer", opponent)
   axios
-        .get(`http://localhost:7000/api/${opponent}`)
+        .get(`https://tictactoeapis.onrender.com/api/${opponent}`)
         .then((res) => {
           gameStore.setOponentPlayer(res.data.username);
         });
   axios
-        .get(`http://localhost:7000/api/${currentPlayer}`)
+        .get(`https://tictactoeapis.onrender.com/api/${currentPlayer}`)
         .then((res) => {
           gameStore.changePlayer(res.data.username)
         });

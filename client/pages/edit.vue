@@ -48,7 +48,7 @@ const reset = () => {
 const edit = async () => {
   if (username.value && email.value) {
       try {
-        const res = await axios.put(`http://localhost:7000/api/edit/${user?.value._id}`, {
+        const res = await axios.put(`https://tictactoeapis.onrender.com/api/edit/${user?.value._id}`, {
           username: username.value,
           email: email.value,
         });

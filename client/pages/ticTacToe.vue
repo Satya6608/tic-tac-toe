@@ -52,7 +52,7 @@ const userStore = useUserStore();
 const authStore = useAuthStore();
 const { user } = storeToRefs(authStore);
 
-const socket = io('http://localhost:7000');
+const socket = io('https://tictactoeapis.onrender.com');
 import { useRouter } from 'vue-router';
 const router = useRouter();
 
@@ -139,7 +139,7 @@ const makeMove = (i, j) => {
 
 const setGameData = async() => {
    try {
-    const res = await axios.post("http://localhost:7000/api/game", {
+    const res = await axios.post("https://tictactoeapis.onrender.com/api/game", {
       user: user?.value?._id,
       history:history?.value[history?.value.length - 1]["squares"],
       opponent:oponentPlayer?.value,
@@ -169,7 +169,7 @@ onMounted(async () => {
   if(oppPlayer){
     socket.on('startGame', ({ oppPlayer }) => {
       axios
-            .get(`http://localhost:7000/api/${oppPlayer}`)
+            .get(`https://tictactoeapis.onrender.com/api/${oppPlayer}`)
             .then((res) => {
               gameStore.setOponentPlayer(res.data.username);
             });
