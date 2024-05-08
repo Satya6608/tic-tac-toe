@@ -34,7 +34,7 @@ function handleSocketConnection(io) {
       const updatedGameStatej = j; // Example function to process move
 
       // Emit updated game state to both players
-      io.to(playersRoom).emit('gameStateUpdated', updatedGameStatei, updatedGameStatej);
+      io.emit('gameStateUpdated', updatedGameStatei, updatedGameStatej);
     });
 
     socket.on('chatMessage', ({ senderId, receiverId, message }) => {
