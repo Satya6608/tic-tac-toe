@@ -26,7 +26,7 @@ const { user } = storeToRefs(authStore);
 const { oponentPlayerId } = storeToRefs(gameStore);
 import { io } from 'socket.io-client';
 import { onMounted } from "vue";
-const socket = io('https://tictactoeapis.onrender.com');
+const socket = io(process.env.APP_URL);
 
 
 const chatMessages = ref([])

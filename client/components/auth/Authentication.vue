@@ -84,7 +84,7 @@ import { useRouter } from 'vue-router';
 import { useAuthStore } from "~/store/auth.js"
 import { storeToRefs } from "pinia"
 import { io } from 'socket.io-client';
-const socket = io('https://tictactoeapis.onrender.com');
+const socket = io(process.env.APP_URL);
 
 const authStore = useAuthStore()
 const banner = ref(null);
@@ -116,7 +116,7 @@ const loginToggle = () => {
 
 const Login = async () => {
     try {
-    const res = await axios.post("https://tictactoeapis.onrender.com/api/login", {
+    const res = await axios.post(`${process.env.APP_URL}/api/login`, {
       username: username.value,
       password: pass.value,
     });
@@ -143,7 +143,7 @@ const reset = () => {
 const signUp = async () => {
   if (username.value && pass.value && email.value) {
       try {
-        const res = await axios.post("https://tictactoeapis.onrender.com/api/signup", {
+        const res = await axios.post(`${process.env.APP_URL}/api/signup`, {
           username: username.value,
           email: email.value,
           password: pass.value,
