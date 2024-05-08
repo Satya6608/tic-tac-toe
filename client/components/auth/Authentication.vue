@@ -116,7 +116,7 @@ const loginToggle = () => {
 
 const Login = async () => {
     try {
-    const res = await axios.post(`${process.env.APP_URL}/api/login`, {
+    const res = await axios.post(`${process.env.APP_URL}api/login`, {
       username: username.value,
       password: pass.value,
     });
@@ -143,7 +143,7 @@ const reset = () => {
 const signUp = async () => {
   if (username.value && pass.value && email.value) {
       try {
-        const res = await axios.post(`${process.env.APP_URL}/api/signup`, {
+        const res = await axios.post(`${process.env.APP_URL}api/signup`, {
           username: username.value,
           email: email.value,
           password: pass.value,

@@ -48,7 +48,7 @@ const reset = () => {
 const edit = async () => {
   if (username.value && email.value) {
       try {
-        const res = await axios.put(`${process.env.APP_URL}/api/edit/${user?.value._id}`, {
+        const res = await axios.put(`${process.env.APP_URL}api/edit/${user?.value._id}`, {
           username: username.value,
           email: email.value,
         });

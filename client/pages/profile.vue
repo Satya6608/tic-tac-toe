@@ -98,7 +98,7 @@ const joinRoom = (player) => {
 const searchUser = () => {
   if (openentPlayer.value.length > 0) {
     axios
-        .get(`${process.env.APP_URL}/api/?search=${openentPlayer.value}&userId=${user?.value?._id}`)
+        .get(`${process.env.APP_URL}api/?search=${openentPlayer.value}&userId=${user?.value?._id}`)
         .then((res) => {
           // if (res.data.length > 0) {
             searchedPlayer.value = res.data
@@ -109,16 +109,15 @@ const searchUser = () => {
     };
 };
 onMounted(async () => {
-  console.log(process.env.APP_URL, "enve caaa a")
   if (!user) return router.push("/");
   socket.on('startGame', ({ opponent, currentPlayer }) => {
   axios
-        .get(`${process.env.APP_URL}/api/${opponent}`)
+        .get(`${process.env.APP_URL}api/${opponent}`)
         .then((res) => {
           gameStore.setOponentPlayer(res.data.username, opponent);
         });
   axios
-        .get(`${process.env.APP_URL}/api/${currentPlayer}`)
+        .get(`${process.env.APP_URL}api/${currentPlayer}`)
         .then((res) => {
           gameStore.changePlayer(res.data.username)
         });

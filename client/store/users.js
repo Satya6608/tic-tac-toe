@@ -4,7 +4,7 @@ export const useUserStore = defineStore("user", () => {
     const items = ref([])
     const fetchItems = async (id) => {
         try {
-            const response = await axios.get(`${process.env.APP_URL}/api/game/${id}`);
+            const response = await axios.get(`${process.env.APP_URL}api/game/${id}`);
             items.value = response.data;
           } catch (error) {
             console.error('Error fetching data:', error);

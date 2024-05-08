@@ -141,7 +141,7 @@ const makeMove = (i, j) => {
 
 const setGameData = async() => {
    try {
-    const res = await axios.post(`${process.env.APP_URL}/api/game`, {
+    const res = await axios.post(`${process.env.APP_URL}api/game`, {
       user: user?.value?._id,
       history:history?.value[history?.value.length - 1]["squares"],
       opponent:oponentPlayer?.value,
