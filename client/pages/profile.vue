@@ -90,8 +90,8 @@ const selectOponent = () => {
 //   localStorage.setItem("openentPlayer", newValue);
 // });
 const joinRoom = (player) => {
-  const userId = player?._id; // Implement this function to get user ID
-  socket.emit('joinGame', userId);
+  const opponentId = player?._id; // Implement this function to get user ID
+  socket.emit('joinGame', opponentId);
   router.push("/tictactoe");
   // gameStore.setOponentPlayer(player?.username);
 };

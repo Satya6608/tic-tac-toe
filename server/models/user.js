@@ -23,6 +23,8 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: 'https://images.pexels.com/photos/375880/pexels-photo-375880.jpeg?auto=compress&cs=tinysrgb&w=800',
   },
+},{
+  timestamps: true,
 });
 
 const User = mongoose.model("User", userSchema);

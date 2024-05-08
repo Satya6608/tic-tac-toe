@@ -4,7 +4,7 @@
       <h1 class="title">Edit</h1>
       <p class="desc">Edit your details</p>
       <div class="input-container">
-        <input type="text" placeholder="username@123" v-model="username" />
+        <input type="text" placeholder="username@123" v-model="username" maxlength="6"/>
       </div>
       <div class="input-container">
         <input

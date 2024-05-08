@@ -47,6 +47,6 @@ export const useGameStore = defineStore("gameStore", () => {
     }
 
     return{
-        currentPlayer, history, stepNo, winner, changePlayer, setOponentPlayer, togglePlayer, reset, addHistory, setWinner, setStepNo, oponentPlayer, userPlayer
+        currentPlayer, history, stepNo, winner, changePlayer, setOponentPlayer, togglePlayer, reset, addHistory, setWinner, setStepNo, oponentPlayer, userPlayer, oponentPlayerId
     }
 })

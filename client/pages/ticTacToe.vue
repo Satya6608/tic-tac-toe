@@ -34,6 +34,7 @@
           Reset Game
         </button>
       </div>
+      <ChatBoard />
       <Award />
     </div>
   </div>
@@ -41,6 +42,7 @@
 
 <script setup>
 import Award from "~/components/Award.vue";
+import ChatBoard from "~/components/ChatBoard.vue";
 import { ref, watch } from "vue";
 import axios from "axios";
 import { useGameStore } from "~/store/gameStore.js";

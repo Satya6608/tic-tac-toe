@@ -16,6 +16,7 @@
             placeholder="username"
             autofocus="on"
             v-model="username"
+            maxlength="6"
           />
         </div>
         <div class="input-container">
@@ -23,6 +24,7 @@
             type="password"
             placeholder="******"
             v-model="pass"
+            minlength="8"
           />
         </div>
         <div class="account-controls">
@@ -55,13 +57,13 @@
           Create your account to Play the Game
         </p>
         <div class="input-container">
-          <input type="text" placeholder="username@123" v-model="username"/>
+          <input type="text" placeholder="username@123" v-model="username"  maxlength="6"/>
         </div>
         <div class="input-container">
           <input type="email" placeholder="youremail@example.com" v-model="email"/>
         </div>
         <div class="input-container">
-          <input type="password" placeholder="******" v-model="pass"/>
+          <input type="password" placeholder="******" v-model="pass"  minlength="8"/>
         </div>
         <div class="account-controls">
           <button @click="signUp()">Next <i class="fas fa-solid fa-angle-right"></i></button>

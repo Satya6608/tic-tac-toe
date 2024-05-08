@@ -35,8 +35,6 @@ import { storeToRefs } from "pinia"
 const authStore = useAuthStore()
 const { user } = storeToRefs(authStore)
 import { useRouter } from 'vue-router';
-import { io } from "socket.io-client";
-const socket = io("https://tictactoeapis.onrender.com");
 
 const router = useRouter();
 

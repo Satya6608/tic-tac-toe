@@ -17,7 +17,9 @@ const gameSchema = new mongoose.Schema({
     winner: {
         type: String,
         required: true
-    }
+    },
+},{
+    timestamps: true,
 });
 
 const Game = mongoose.model('Game', gameSchema);
