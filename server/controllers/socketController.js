@@ -55,7 +55,7 @@ function handleSocketConnection(io) {
     });
 
     // When a user disconnects, update their online status to false
-    socket.on('disconnect', () => {
+    socket.on('disconnect', async() => {
         let userId = ""; // Implement this function to get userId from socket
         for (let [cUserId, socketId] of connectedUsers) {
             if (socketId === socket.id) {
@@ -64,13 +64,15 @@ function handleSocketConnection(io) {
             break;
             }
         }
-        User.findByIdAndUpdate(userId, { online: false }, { new: true })
-        .then((user) => {
-          console.log(`${user} disconnected`);
-        })
-        .catch((error) => {
-          console.error('Error updating online status:', error);
-        });
+        if(userId){
+          await User.findByIdAndUpdate(userId, { online: false }, { new: true })
+          .then((user) => {
+            console.log(`${user} disconnected`);
+          })
+          .catch((error) => {
+            console.error('Error updating online status:', error);
+          });
+        }
     });
 
     // Other socket event handlers...
