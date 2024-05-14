@@ -95,8 +95,7 @@
           <div class="message-user-send">
             <input type="text" placeholder="Aa" />
           </div>
-          <button type="button">4
-            <font-awesome-icon :icon="['fab', link.icon]" />
+          <button type="button">
             <i class="fa-solid fa-paper-plane"></i>
           </button>
         </div>
