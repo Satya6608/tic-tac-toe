@@ -1,7 +1,7 @@
 // socketHandlers.js
 const User = require('../models/user'); // Assuming User model is defined in a separate file
-const ChatMessage = require('../models/chat');
-  const connectedUsers = new Map();
+const chatController = require('../controllers/chatController');
+const connectedUsers = new Map();
 function handleSocketConnection(io) {
   io.on('connection', (socket) => {
     // When a user connects, update their online status to true
@@ -37,23 +37,38 @@ function handleSocketConnection(io) {
       io.emit('gameStateUpdated', updatedGameStatei, updatedGameStatej);
     });
 
-    socket.on('chatMessage', ({ senderId, receiverId, message }) => {
-      // Save message to database
-      console.log('Sending message', senderId, receiverId, message)
-      const newMessage = new ChatMessage({
-        senderId,
-        receiverId,
-        message
-      });
-      newMessage.save()
-      .then(() => {
-        io.emit('chatMessageSend', newMessage); // Emit message to the sender socket only
-        })
-        .catch((error) => {
-          console.error('Error saving chat message:', error);
-        });
+    socket.on('chatMessage', async ({ senderId, receiverId, message }) => {
+      try {
+        const newMessage = await chatController.saveMessage(senderId, receiverId, message);
+        io.emit('chatMessageSend', newMessage); // Emit message to all connected sockets
+      } catch (error) {
+        console.error(error);
+      }
     });
-
+    // // voice chat message
+    // socket.on('offer', offer => {
+    //   // Broadcast offer to other clients
+    //   console.log('Sending offer', offer);
+    //   socket.broadcast.emit('offer', offer);
+    // });
+  
+    // socket.on('answer', answer => {
+    //   // Broadcast answer to other clients
+    //   console.log('Sending answer', answer);
+    //   socket.broadcast.emit('answer', answer);
+    // });
+  
+    // socket.on('iceCandidate', iceCandidate => {
+    //   // Broadcast ICE candidate to other clients
+    //   console.log('Sending ICE candidate', iceCandidate);
+    //   socket.broadcast.emit('iceCandidate', iceCandidate);
+    // });
+  
+    // socket.on('stopVoiceChat', () => {
+    //   // Handle stop voice chat
+    //   console.log('Stopping voice chat');
+    //   socket.broadcast.emit('stopVoiceChat');
+    // });
     // When a user disconnects, update their online status to false
     socket.on('disconnect', async() => {
         let userId = ""; // Implement this function to get userId from socket

@@ -5,6 +5,7 @@ const http = require("http"); // Require the http module
 const socketIo = require("socket.io");
 const authRoutes = require("./routes/authRoutes");
 const gameRoutes = require("./routes/gameRoutes");
+const chatRoutes = require("./routes/chatRoutes");
 const { connectToDatabase } = require("./utils/dbConnection");
 const { handleSocketConnection } = require('./controllers/socketController');
 const path = require("path");
@@ -24,6 +25,7 @@ app.use(bodyParser.json());
 // Routes
 app.use("/api", authRoutes);
 app.use("/api", gameRoutes);
+app.use("/api", chatRoutes);
 
 // Create an HTTP server using Express app
 const server = http.createServer(app);
