@@ -30,7 +30,7 @@
           <div
             class="!block !w-full absolute buttons options top-12 z-10"
             v-if="searchedPlayer && openentPlayer"
-            style="background-color:aliceblue;"
+            style="background-color: aliceblue"
           >
             <button
               class="w-full !flex-row !justify-start"
@@ -51,7 +51,7 @@
           </div>
         </div>
 
-        <div class="list-search-user-chat mt-20">
+        <div class="list-search-user-chat mt-20" v-if="chats.length > 0">
           <div
             v-for="(chat, i) in chats"
             class="user-chat"
@@ -62,38 +62,81 @@
           >
             <div class="user-chat-img">
               <img
-                :src="chat?.users[0]?._id == user?._id ? chat?.users[1]?.image : chat?.users[0]?.image"
+                :src="
+                  chat?.users[0]?._id == user?._id
+                    ? chat?.users[1]?.image
+                    : chat?.users[0]?.image
+                "
                 alt=""
               />
-              <div v-if="!(chat?.users[0]?._id == user?._id ? chat?.users[1]?.online : chat?.users[0]?.online)" class="offline"></div>
+              <div
+                v-if="
+                  !(chat?.users[0]?._id == user?._id
+                    ? chat?.users[1]?.online
+                    : chat?.users[0]?.online)
+                "
+                class="offline"
+              ></div>
               <div v-else class="online"></div>
             </div>
 
             <div class="user-chat-text">
-              <p class="mt-0 mb-0"><strong>{{chat?.users[0]?._id == user?._id ? chat?.users[1]?.username : chat?.users[0]?.username}}</strong></p>
-              <small>{{chat?.latestMessage?.content}}</small>
+              <p class="mt-0 mb-0">
+                <strong>{{
+                  chat?.users[0]?._id == user?._id
+                    ? chat?.users[1]?.username
+                    : chat?.users[0]?.username
+                }}</strong>
+              </p>
+              <small>{{ chat?.latestMessage?.content }}</small>
             </div>
           </div>
+        </div>
+        <div class="list-search-user-chat mt-20" v-else>
+          Search a chat to start
         </div>
       </div>
 
       <div class="content-chat-message-user" data-username="Jorge Harrinson">
         <div class="head-chat-message-user">
           <img
-            :src="selectedChat?.users[0]?._id == user?._id ? selectedChat?.users[1]?.image : selectedChat?.users[0]?.image"
+            :src="
+              selectedChat?.users[0]?._id == user?._id
+                ? selectedChat?.users[1]?.image
+                : selectedChat?.users[0]?.image
+            "
             alt=""
           />
           <div class="message-user-profile">
-            <p class="mt-0 mb-0 text-white"><strong>{{selectedChat?.users[0]?._id == user?._id ? selectedChat?.users[1]?.username : selectedChat?.users[0]?.username}}</strong></p>
+            <p class="mt-0 mb-0 text-white">
+              <strong>{{
+                selectedChat?.users[0]?._id == user?._id
+                  ? selectedChat?.users[1]?.username
+                  : selectedChat?.users[0]?.username
+              }}</strong>
+            </p>
             <!-- <small class="text-white"
               > -->
-              <p v-if="!(selectedChat?.users[0]?._id == user?._id ? selectedChat?.users[1]?.online : selectedChat?.users[0]?.online)" class="offline mt-0 mb-0">Offline</p>
-              <p v-else class="online mt-0 mb-0">Online</p>
-              <!-- </small> -->
+            <p
+              v-if="
+                !(selectedChat?.users[0]?._id == user?._id
+                  ? selectedChat?.users[1]?.online
+                  : selectedChat?.users[0]?.online)
+              "
+              class="offline mt-0 mb-0"
+            >
+              Offline
+            </p>
+            <p v-else class="online mt-0 mb-0">Online</p>
+            <!-- </small> -->
           </div>
         </div>
-        <div class="body-chat-message-user" ref="messageContainer">
-         <div
+        <div
+          class="body-chat-message-user"
+          ref="messageContainer"
+          v-if="messages.length > 0"
+        >
+          <div
             class="message-user-left"
             :class="
               item.sender._id != user?._id
@@ -124,7 +167,15 @@
               "
             >
               <span style="font-size: 14px">{{ item?.content }}</span>
-              <small style="position: absolute;bottom: 2px;right: 12px;font-size: 10px;">{{formatTimestampWithTime(item.updatedAt)}}</small>
+              <small
+                style="
+                  position: absolute;
+                  bottom: 2px;
+                  right: 12px;
+                  font-size: 10px;
+                "
+                >{{ formatTimestampWithTime(item.updatedAt) }}</small
+              >
             </div>
           </div>
           <!-- <div class="message-user-right">
@@ -141,9 +192,13 @@
             </div>
           </div> -->
         </div>
+        <div class="body-chat-message-user justify-center items-center" v-else>
+          No message to show<br />
+          Please start chatting
+        </div>
         <div class="footer-chat-message-user">
           <div class="message-user-send">
-            <input type="text" placeholder="Aa" v-model="newMessage"/>
+            <input type="text" placeholder="Aa" v-model="newMessage" />
           </div>
           <button type="button" @click="sendMessage">
             <i class="fa-solid fa-paper-plane"></i>
@@ -171,48 +226,53 @@ const openentPlayer = ref("");
 const selectedChat = ref(null);
 const messageContainer = ref(null);
 const messages = ref([]);
-const newMessage = ref('')
+const newMessage = ref("");
 
 const scrollToBottom = () => {
-  console.log('scrollToBottom', messageContainer.value)
-      if (messageContainer.value) {
-        messageContainer.value.scrollTop = messageContainer.value.scrollHeight;
-      }
-    };
+  console.log("scrollToBottom", messageContainer.value);
+  if (messageContainer.value) {
+    messageContainer.value.scrollTop = messageContainer.value.scrollHeight;
+  }
+};
 
 const chatSelect = (chat) => {
   selectedChat.value = chat;
-  fetchMessages()
-}
+  if (!chat) return;
+  fetchMessages();
+};
 const fetchChats = async () => {
-    console.log(token.value);
-    try {
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token.value}`,
-        },
-      };
+  console.log("dfghjkl;lkjhgfdsfghj");
+  console.log(token.value);
+  try {
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token.value}`,
+      },
+    };
 
-      const { data } = await axios.get(`${process.env.APP_URL}api/chat/fetch`, config);
-      console.log(data);
-      chats.value = data;
-      chatSelect(data[0]);
-      // fetchMessages();
-    } catch (error) {
-      console.error("Error fetching chats", error);
-      // toast({
-      //   title: "Error Occured!",
-      //   description: "Failed to Load the chats",
-      //   status: "error",
-      //   duration: 5000,
-      //   isClosable: true,
-      //   position: "bottom-left",
-      // });
-    }
-  };
+    const { data } = await axios.get(
+      `${process.env.APP_URL}api/chat/fetch`,
+      config
+    );
+    console.log(data);
+    chats.value = data;
+    chatSelect(data[0]);
+    // fetchMessages();
+  } catch (error) {
+    console.error("Error fetching chats", error);
+    // toast({
+    //   title: "Error Occured!",
+    //   description: "Failed to Load the chats",
+    //   status: "error",
+    //   duration: 5000,
+    //   isClosable: true,
+    //   position: "bottom-left",
+    // });
+  }
+};
 
-  const accessChat = async (userId) => {
-  console.log(userId, );
+const accessChat = async (userId) => {
+  console.log(userId);
 
   try {
     const config = {
@@ -221,9 +281,17 @@ const fetchChats = async () => {
         Authorization: `Bearer ${token.value}`,
       },
     };
-    const { data } = await axios.post(`${process.env.APP_URL}api/chat`, { userId }, config);
+    const { data } = await axios.post(
+      `${process.env.APP_URL}api/chat`,
+      { userId },
+      config
+    );
 
-    if (!chats?.value?.find((c) => c._id === data._id)) chats?.value([data, ...chats]);
+    if (!chats?.value?.find((c) => c._id === data._id)) {
+      chats?.value.push(data);
+      searchedPlayer.value = [];
+      openentPlayer.value = "";
+    }
   } catch (error) {
     console.error(error, "Failed to access Chats");
   }
@@ -237,7 +305,7 @@ const searchUser = () => {
       )
       .then((res) => {
         // if (res.data.length > 0) {
-          console.log(res.data)
+        console.log(res.data);
         searchedPlayer.value = res.data;
         //   gameStore.setOponentPlayer(res.data[0].username);
         //   router.push("/tictactoe");
@@ -264,10 +332,10 @@ const sendMessage = async () => {
         },
         config
       );
-      newMessage.value = ''
-      console.log(data, "message data")
+      newMessage.value = "";
+      console.log(data, "message data");
       messages?.value.push(data);
-      scrollToBottom()
+      scrollToBottom();
       socket.emit("new message", data);
       // setMessages([...messages, data]);
     } catch (error) {
@@ -298,7 +366,7 @@ const fetchMessages = async () => {
       config
     );
     console.log(data);
-    newMessage.value = ''
+    newMessage.value = "";
     messages.value = data;
     // setLoading(false);
 
@@ -317,32 +385,34 @@ const fetchMessages = async () => {
 };
 
 const formatTimestampWithTime = (timestamp) => {
-    const date = new Date(timestamp);
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const dayIndex = date.getDay(); // Get the day index (0-6)
-    const dayAbbreviation = days[dayIndex]; // Get the three-letter abbreviation of the day
+  const date = new Date(timestamp);
+  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const dayIndex = date.getDay(); // Get the day index (0-6)
+  const dayAbbreviation = days[dayIndex]; // Get the three-letter abbreviation of the day
 
-    // Get the time in HH:mm format
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-    const time = `${hours}:${minutes}`;
+  // Get the time in HH:mm format
+  const hours = date.getHours().toString().padStart(2, "0");
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+  const time = `${hours}:${minutes}`;
 
-    return `${dayAbbreviation}, ${time}`; // Return day abbreviation followed by time
-}
+  return `${dayAbbreviation}, ${time}`; // Return day abbreviation followed by time
+};
 
 onMounted(async () => {
+  console.log("dfghjkl;lkjhgfdsfghj", process.env.APP_URL);
+
   socket.emit("authenticate", user?.value._id);
   socket.emit("setup", user.value);
   socket.on("connected");
   socket.on("message recieved", (newMessageRecieved) => {
-    console.log(newMessageRecieved.content, 'dfghjkl;kjghfdsdfgl')
+    console.log(newMessageRecieved.content, "dfghjkl;kjghfdsdfgl");
     messages?.value.push(newMessageRecieved);
-    scrollToBottom()
-    });
-    setTimeout(() => {
-      scrollToBottom()
-    }, 500)
-    await fetchChats();
+    scrollToBottom();
+  });
+  setTimeout(() => {
+    scrollToBottom();
+  }, 500);
+  await fetchChats();
   // socket.on("typing");
   // socket.on("stop typing");
 });
@@ -1018,7 +1088,7 @@ ol li {
   .head-chat-message-user
   .message-user-profile
   .online::before {
-  content: '';
+  content: "";
   width: 10px;
   height: 10px;
   background-color: #009975;
@@ -1032,16 +1102,16 @@ ol li {
   .content-chat-message-user
   .head-chat-message-user
   .message-user-profile
-  .offline::before{
-    content: '';
-    width: 10px;
-    height: 10px;
-    background-color: #bb4315;
-    border-radius: 50%;
-    border: 3px solid #ffffff;
-    box-shadow: 1px 1px 15px -4px #000;
-    display: inline-block;
-    margin-right: 5px;
+  .offline::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  background-color: #bb4315;
+  border-radius: 50%;
+  border: 3px solid #ffffff;
+  box-shadow: 1px 1px 15px -4px #000;
+  display: inline-block;
+  margin-right: 5px;
 }
 .content-chat .content-chat-message-user .body-chat-message-user {
   display: flex;
@@ -1272,7 +1342,7 @@ ol li {
   button:hover {
   background-color: #daa520;
 }
-.onlineUser::before{
+.onlineUser::before {
   content: "";
   display: block;
   width: 10px;
