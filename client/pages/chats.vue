@@ -20,29 +20,57 @@
             placeholder="Search..."
             name="search"
             class="search"
+            v-model="openentPlayer"
+            autocomplete="off"
+            @input="searchUser()"
           />
           <span>
             <i class="fa-solid fa-magnifying-glass"></i>
           </span>
+          <div
+            class="!block !w-full absolute buttons options top-12 z-10"
+            v-if="searchedPlayer && openentPlayer"
+            style="background-color:aliceblue;"
+          >
+            <button
+              class="w-full !flex-row !justify-start"
+              v-for="(player, i) in searchedPlayer"
+              :key="i"
+              @click="accessChat(player._id)"
+            >
+              <img
+                :src="player.image"
+                style="width: 32px; height: 32px; border-radius: 50%"
+              />
+              {{ player.username }}
+              <span
+                v-if="player.online"
+                class="ml-10 onlineUser absolute right-3"
+              ></span>
+            </button>
+          </div>
         </div>
 
         <div class="list-search-user-chat mt-20">
           <div
-            v-for="item in 10"
+            v-for="(chat, i) in chats"
             class="user-chat"
+            :class="chat == selectedChat && 'active'"
             data-username="Maria Dennis"
-            :key="item"
+            :key="i"
+            @click="chatSelect(chat)"
           >
             <div class="user-chat-img">
               <img
-                src="https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+                :src="chat?.users[1]?.image"
                 alt=""
               />
-              <div class="offline"></div>
+              <div v-if="!chat?.users[1]?.online" class="offline"></div>
+              <div v-else class="online"></div>
             </div>
 
             <div class="user-chat-text">
-              <p class="mt-0 mb-0"><strong>Maria Dennis</strong></p>
+              <p class="mt-0 mb-0"><strong>{{chat.users[1].username}}</strong></p>
               <small>Hi, how are you?</small>
             </div>
           </div>
@@ -52,31 +80,52 @@
       <div class="content-chat-message-user" data-username="Jorge Harrinson">
         <div class="head-chat-message-user">
           <img
-            src="https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+            :src="selectedChat?.users[1]?.image"
             alt=""
           />
           <div class="message-user-profile">
-            <p class="mt-0 mb-0 text-white"><strong>Jorge Harrinson</strong></p>
-            <small class="text-white"
-              ><p class="online mt-0 mb-0"></p>
-              Online</small
-            >
+            <p class="mt-0 mb-0 text-white"><strong>{{selectedChat?.users[1]?.username}}</strong></p>
+            <!-- <small class="text-white"
+              > -->
+              <p v-if="!selectedChat?.users[1]?.online" class="offline mt-0 mb-0">Offline</p>
+              <p v-else class="online mt-0 mb-0">Online</p>
+              <!-- </small> -->
           </div>
         </div>
         <div class="body-chat-message-user">
-          <div class="message-user-left" :class="item.receiverId._id != '65d3006437ba40e73052a490' ? 'message-user-left' : 'message-user-right'" v-for="(item, i) in chats" :key="i">
-            <div :class="item.receiverId._id != '65d3006437ba40e73052a490' ? 'message-user-left-img' : 'message-user-right-img'">
-              <img
-                :src="item.receiverId.image"
-                alt=""
-              />
-              <p class="mt-0 mb-0"><strong>{{item?.receiverId?.username}}</strong></p>
+          <!-- <div
+            class="message-user-left"
+            :class="
+              item.receiverId._id != '65d3006437ba40e73052a490'
+                ? 'message-user-left'
+                : 'message-user-right'
+            "
+            v-for="(item, i) in chats"
+            :key="i"
+          >
+            <div
+              :class="
+                item.receiverId._id != '65d3006437ba40e73052a490'
+                  ? 'message-user-left-img'
+                  : 'message-user-right-img'
+              "
+            >
+              <img :src="item.receiverId.image" alt="" />
+              <p class="mt-0 mb-0">
+                <strong>{{ item?.receiverId?.username }}</strong>
+              </p>
               <small>mié 17:59</small>
             </div>
-            <div :class="item.receiverId._id != '65d3006437ba40e73052a490' ? 'message-user-left-text' : 'message-user-right'">
-              <strong>{{item?.message}}</strong>
+            <div
+              :class="
+                item.receiverId._id != '65d3006437ba40e73052a490'
+                  ? 'message-user-left-text'
+                  : 'message-user-right'
+              "
+            >
+              <strong>{{ item?.message }}</strong>
             </div>
-          </div>
+          </div> -->
           <!-- <div class="message-user-right">
             <div class="message-user-right-img">
               <p class="mt-0 mb-0"><strong>Luis Angel Solano Rivera</strong></p>
@@ -93,9 +142,9 @@
         </div>
         <div class="footer-chat-message-user">
           <div class="message-user-send">
-            <input type="text" placeholder="Aa" />
+            <input type="text" placeholder="Aa" v-model="newMessage"/>
           </div>
-          <button type="button">
+          <button type="button" @click="sendMessage">
             <i class="fa-solid fa-paper-plane"></i>
           </button>
         </div>
@@ -105,42 +154,154 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue';
-import axios from 'axios';
+import { onMounted } from "vue";
+import axios from "axios";
 import { storeToRefs } from "pinia";
 import { useAuthStore } from "~/store/auth.js";
 const authStore = useAuthStore();
-const { user } = storeToRefs(authStore);
+const { user, token } = storeToRefs(authStore);
 
+const chats = ref([]);
+const searchedPlayer = ref([]);
+const openentPlayer = ref("");
+const selectedChat = ref(null);
+const messages = ref([]);
+let newMessage;
 
-const chats = ref([])
-const selectedChat = ref(null)
+const chatSelect = (chat) => {
+  selectedChat.value = chat;
+  fetchMessages()
+}
+const fetchChats = async () => {
+    console.log(token.value);
+    try {
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token.value}`,
+        },
+      };
 
-const fetchChats = () => {
-  axios.get(`${process.env.APP_URL}api/allChats/65d3006437ba40e73052a490`)
-    .then(response => {
-      console.log(response.data, "chats");
-      chats.value = response.data;
-    })
-    .catch(error => {
-      console.error('Error fetching chats:', error);
-    });
+      const { data } = await axios.get(`${process.env.APP_URL}api/chat/fetch`, config);
+      console.log(data);
+      chats.value = data;
+      selectedChat.value = data[0];
+    } catch (error) {
+      console.error("Error fetching chats", error);
+      // toast({
+      //   title: "Error Occured!",
+      //   description: "Failed to Load the chats",
+      //   status: "error",
+      //   duration: 5000,
+      //   isClosable: true,
+      //   position: "bottom-left",
+      // });
+    }
+  };
+
+  const accessChat = async (userId) => {
+  console.log(userId, );
+
+  try {
+    const config = {
+      headers: {
+        "Content-type": "application/json",
+        Authorization: `Bearer ${token.value}`,
+      },
+    };
+    const { data } = await axios.post(`${process.env.APP_URL}api/chat`, { userId }, config);
+
+    if (!chats?.value?.find((c) => c._id === data._id)) chats?.value([data, ...chats]);
+  } catch (error) {
+    console.error(error, "Failed to access Chats");
+  }
 };
 
-    // const handleChatSelection = (chat) => {
-    //   state.selectedChat = chat;
-    //   axios.get(`/api/chats/${chat._id}/history`)
-    //     .then(response => {
-    //       console.log('Chat history:', response.data);
-    //       // Set the chat history in state and display it in the UI
-    //     })
-    //     .catch(error => {
-    //       console.error('Error fetching chat history:', error);
-    //     });
-    // };
+const searchUser = () => {
+  if (openentPlayer.value.length > 0) {
+    axios
+      .get(
+        `${process.env.APP_URL}api/?search=${openentPlayer.value}&userId=${user?.value?._id}`
+      )
+      .then((res) => {
+        // if (res.data.length > 0) {
+          console.log(res.data)
+        searchedPlayer.value = res.data;
+        //   gameStore.setOponentPlayer(res.data[0].username);
+        //   router.push("/tictactoe");
+        // }
+      });
+  }
+};
+const sendMessage = async () => {
+  if (newMessage) {
+    // socket.emit("stop typing", selectedChat._id);
+    try {
+      const config = {
+        headers: {
+          "Content-type": "application/json",
+          Authorization: `Bearer ${token.value}`,
+        },
+      };
+      // setNewMessage("");
+      const { data } = await axios.post(
+        `${process.env.APP_URL}api/message`,
+        {
+          content: newMessage,
+          chatId: selectedChat.value?._id,
+        },
+        config
+      );
+      console.log(data, "message data")
+      // socket.emit("new message", data);
+      // setMessages([...messages, data]);
+    } catch (error) {
+      console.log(error, "Error sending message");
+      // toast({
+      //   title: "Error Occured!",
+      //   description: "Failed to send the Message",
+      //   status: "error",
+      //   duration: 5000,
+      //   isClosable: true,
+      //   position: "bottom",
+      // });
+    }
+  }
+};
+
+const fetchMessages = async () => {
+  if (!selectedChat) return;
+
+  try {
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token.value}`,
+      },
+    };
+    const { data } = await axios.get(
+      `${process.env.APP_URL}api/message/${selectedChat.value?._id}`,
+      config
+    );
+    console.log(data);
+    // setMessages(data);
+    // setLoading(false);
+
+    // socket.emit("join chat", selectedChat.value?._id);
+  } catch (error) {
+    console.error("Error fetching messages", error);
+    // toast({
+    //   title: "Error Occured!",
+    //   description: "Failed to Load the Messages",
+    //   status: "error",
+    //   duration: 5000,
+    //   isClosable: true,
+    //   position: "bottom",
+    // });
+  }
+};
 
 onMounted(async () => {
-  fetchChats()
+  await fetchChats();
+  await fetchMessages();
 });
 </script>
 <style scoped>
@@ -802,39 +963,42 @@ ol li {
   -o-object-fit: cover;
   object-fit: cover;
 }
-.content-chat .head-search-chat .message-user-profile small {
+.content-chat .head-search-chat .message-user-profile p {
   display: flex;
   gap: 5px;
+  color: #ffffff;
+  font-size: 10px;
 }
 
 .content-chat
   .content-chat-message-user
   .head-chat-message-user
   .message-user-profile
-  small
-  .online {
+  .online::before {
+  content: '';
   width: 10px;
   height: 10px;
-  font-size: 20px;
   background-color: #009975;
   border-radius: 50%;
   border: 3px solid #ffffff;
   box-shadow: 1px 1px 15px -4px #000;
+  display: inline-block;
+  margin-right: 5px;
 }
-
 .content-chat
   .content-chat-message-user
   .head-chat-message-user
   .message-user-profile
-  small
-  .offline {
-  width: 10px;
-  height: 10px;
-  font-size: 20px;
-  background-color: #bb4315;
-  border-radius: 50%;
-  border: 3px solid #ffffff;
-  box-shadow: 1px 1px 15px -4px #000;
+  .offline::before{
+    content: '';
+    width: 10px;
+    height: 10px;
+    background-color: #bb4315;
+    border-radius: 50%;
+    border: 3px solid #ffffff;
+    box-shadow: 1px 1px 15px -4px #000;
+    display: inline-block;
+    margin-right: 5px;
 }
 .content-chat .content-chat-message-user .body-chat-message-user {
   display: flex;
@@ -1060,6 +1224,46 @@ ol li {
   .footer-chat-message-user
   button:hover {
   background-color: #daa520;
+}
+.onlineUser::before{
+  content: "";
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: green;
+  margin-right: 10px;
+}
+
+.options {
+  display: flex;
+  align-items: center;
+  width: 80%;
+  gap: 10px;
+}
+
+.options > button,
+.options > a {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 5px;
+  gap: 10px;
+  background-color: white;
+  border: 2px solid #e9e6f6;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 500ms ease;
+}
+.options > button:hover {
+  transform: scale(1.1);
+}
+.options > button > .btn-img {
+  width: 30px;
+  aspect-ratio: 1/1;
 }
 
 @media (max-width: 913px) {

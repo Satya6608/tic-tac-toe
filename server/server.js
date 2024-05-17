@@ -6,6 +6,7 @@ const socketIo = require("socket.io");
 const authRoutes = require("./routes/authRoutes");
 const gameRoutes = require("./routes/gameRoutes");
 const chatRoutes = require("./routes/chatRoutes");
+const messageRoutes = require("./routes/messageRoutes");
 const { connectToDatabase } = require("./utils/dbConnection");
 const { handleSocketConnection } = require('./controllers/socketController');
 const path = require("path");
@@ -25,7 +26,10 @@ app.use(bodyParser.json());
 // Routes
 app.use("/api", authRoutes);
 app.use("/api", gameRoutes);
-app.use("/api", chatRoutes);
+// app.use("/api", chatRoutes);
+app.use("/api/chat", chatRoutes);
+app.use("/api/message", messageRoutes);
+
 
 // Create an HTTP server using Express app
 const server = http.createServer(app);
