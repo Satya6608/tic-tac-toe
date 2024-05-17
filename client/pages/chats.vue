@@ -185,6 +185,7 @@ const fetchChats = async () => {
       console.log(data);
       chats.value = data;
       selectedChat.value = data[0];
+      fetchMessages();
     } catch (error) {
       console.error("Error fetching chats", error);
       // toast({
@@ -301,7 +302,7 @@ const fetchMessages = async () => {
 
 onMounted(async () => {
   await fetchChats();
-  await fetchMessages();
+  // await fetchMessages();
 });
 </script>
 <style scoped>

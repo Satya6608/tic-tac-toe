@@ -21,7 +21,7 @@ const userSchema = new mongoose.Schema({
   },
   image: {
     type: String,
-    default: 'https://images.pexels.com/photos/375880/pexels-photo-375880.jpeg?auto=compress&cs=tinysrgb&w=800',
+    default: 'http://loremflickr.com/60/60/girl',
   },
 },{
   timestamps: true,
