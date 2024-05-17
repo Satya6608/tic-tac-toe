@@ -37,38 +37,36 @@ function handleSocketConnection(io) {
       io.emit('gameStateUpdated', updatedGameStatei, updatedGameStatej);
     });
 
-    socket.on('chatMessage', async ({ senderId, receiverId, message }) => {
-      try {
-        const newMessage = await chatController.saveMessage(senderId, receiverId, message);
-        io.emit('chatMessageSend', newMessage); // Emit message to all connected sockets
-      } catch (error) {
-        console.error(error);
-      }
+    socket.on("setup", (userData) => {
+      console.log(userData, "dfghjklkjhgfdfghjkljghdffghjkljhgfds");
+      socket.join(userData._id);
+      socket.emit("connected");
     });
-    // // voice chat message
-    // socket.on('offer', offer => {
-    //   // Broadcast offer to other clients
-    //   console.log('Sending offer', offer);
-    //   socket.broadcast.emit('offer', offer);
+
+    // socket.on("join chat", (room) => {
+    //   socket.join(room);
+    //   console.log("User Joined Room: " + room);
     // });
-  
-    // socket.on('answer', answer => {
-    //   // Broadcast answer to other clients
-    //   console.log('Sending answer', answer);
-    //   socket.broadcast.emit('answer', answer);
-    // });
-  
-    // socket.on('iceCandidate', iceCandidate => {
-    //   // Broadcast ICE candidate to other clients
-    //   console.log('Sending ICE candidate', iceCandidate);
-    //   socket.broadcast.emit('iceCandidate', iceCandidate);
-    // });
-  
-    // socket.on('stopVoiceChat', () => {
-    //   // Handle stop voice chat
-    //   console.log('Stopping voice chat');
-    //   socket.broadcast.emit('stopVoiceChat');
-    // });
+    socket.on("typing", (room) => socket.in(room).emit("typing"));
+    socket.on("stop typing", (room) => socket.in(room).emit("stop typing"));
+
+    socket.on("new message", (newMessageRecieved) => {
+      var chat = newMessageRecieved.chat;
+        console.log(chat, "new message")
+      if (!chat.users) return console.log("chat.users not defined");
+
+      chat.users.forEach((user) => {
+        if (user._id == newMessageRecieved.sender._id) return;
+        console.log("user", newMessageRecieved)
+        socket.in(user._id).emit("message recieved", newMessageRecieved);
+      });
+    });
+
+    socket.off("setup", () => {
+      console.log("USER DISCONNECTED");
+      socket.leave(userData._id);
+    });
+
     // When a user disconnects, update their online status to false
     socket.on('disconnect', async() => {
         let userId = ""; // Implement this function to get userId from socket

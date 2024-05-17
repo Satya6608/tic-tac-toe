@@ -62,16 +62,16 @@
           >
             <div class="user-chat-img">
               <img
-                :src="chat?.users[1]?.image"
+                :src="chat?.users[0]?._id == user?._id ? chat?.users[1]?.image : chat?.users[0]?.image"
                 alt=""
               />
-              <div v-if="!chat?.users[1]?.online" class="offline"></div>
+              <div v-if="!(chat?.users[0]?._id == user?._id ? chat?.users[1]?.online : chat?.users[0]?.online)" class="offline"></div>
               <div v-else class="online"></div>
             </div>
 
             <div class="user-chat-text">
-              <p class="mt-0 mb-0"><strong>{{chat.users[1].username}}</strong></p>
-              <small>Hi, how are you?</small>
+              <p class="mt-0 mb-0"><strong>{{chat?.users[0]?._id == user?._id ? chat?.users[1]?.username : chat?.users[0]?.username}}</strong></p>
+              <small>{{chat?.latestMessage?.content}}</small>
             </div>
           </div>
         </div>
@@ -80,52 +80,53 @@
       <div class="content-chat-message-user" data-username="Jorge Harrinson">
         <div class="head-chat-message-user">
           <img
-            :src="selectedChat?.users[1]?.image"
+            :src="selectedChat?.users[0]?._id == user?._id ? selectedChat?.users[1]?.image : selectedChat?.users[0]?.image"
             alt=""
           />
           <div class="message-user-profile">
-            <p class="mt-0 mb-0 text-white"><strong>{{selectedChat?.users[1]?.username}}</strong></p>
+            <p class="mt-0 mb-0 text-white"><strong>{{selectedChat?.users[0]?._id == user?._id ? selectedChat?.users[1]?.username : selectedChat?.users[0]?.username}}</strong></p>
             <!-- <small class="text-white"
               > -->
-              <p v-if="!selectedChat?.users[1]?.online" class="offline mt-0 mb-0">Offline</p>
+              <p v-if="!(selectedChat?.users[0]?._id == user?._id ? selectedChat?.users[1]?.online : selectedChat?.users[0]?.online)" class="offline mt-0 mb-0">Offline</p>
               <p v-else class="online mt-0 mb-0">Online</p>
               <!-- </small> -->
           </div>
         </div>
-        <div class="body-chat-message-user">
-          <!-- <div
+        <div class="body-chat-message-user" ref="messageContainer">
+         <div
             class="message-user-left"
             :class="
-              item.receiverId._id != '65d3006437ba40e73052a490'
+              item.sender._id != user?._id
                 ? 'message-user-left'
                 : 'message-user-right'
             "
-            v-for="(item, i) in chats"
+            v-for="(item, i) in messages"
             :key="i"
           >
-            <div
+            <!-- <div
               :class="
-                item.receiverId._id != '65d3006437ba40e73052a490'
+                item.sender._id != user._id
                   ? 'message-user-left-img'
                   : 'message-user-right-img'
               "
             >
-              <img :src="item.receiverId.image" alt="" />
+              <img :src="item.sender.image" alt="" />
               <p class="mt-0 mb-0">
-                <strong>{{ item?.receiverId?.username }}</strong>
+                <strong>{{ item?.sender?.username }}</strong>
               </p>
               <small>mié 17:59</small>
-            </div>
+            </div> -->
             <div
               :class="
-                item.receiverId._id != '65d3006437ba40e73052a490'
+                item.sender._id != user._id
                   ? 'message-user-left-text'
-                  : 'message-user-right'
+                  : 'message-user-right-text'
               "
             >
-              <strong>{{ item?.message }}</strong>
+              <span style="font-size: 14px">{{ item?.content }}</span>
+              <small style="position: absolute;bottom: 2px;right: 12px;font-size: 10px;">{{formatTimestampWithTime(item.updatedAt)}}</small>
             </div>
-          </div> -->
+          </div>
           <!-- <div class="message-user-right">
             <div class="message-user-right-img">
               <p class="mt-0 mb-0"><strong>Luis Angel Solano Rivera</strong></p>
@@ -158,6 +159,9 @@ import { onMounted } from "vue";
 import axios from "axios";
 import { storeToRefs } from "pinia";
 import { useAuthStore } from "~/store/auth.js";
+import { io } from "socket.io-client";
+const socket = io(process.env.APP_URL);
+
 const authStore = useAuthStore();
 const { user, token } = storeToRefs(authStore);
 
@@ -165,8 +169,16 @@ const chats = ref([]);
 const searchedPlayer = ref([]);
 const openentPlayer = ref("");
 const selectedChat = ref(null);
+const messageContainer = ref(null);
 const messages = ref([]);
-let newMessage;
+const newMessage = ref('')
+
+const scrollToBottom = () => {
+  console.log('scrollToBottom', messageContainer.value)
+      if (messageContainer.value) {
+        messageContainer.value.scrollTop = messageContainer.value.scrollHeight;
+      }
+    };
 
 const chatSelect = (chat) => {
   selectedChat.value = chat;
@@ -234,7 +246,7 @@ const searchUser = () => {
   }
 };
 const sendMessage = async () => {
-  if (newMessage) {
+  if (newMessage.value) {
     // socket.emit("stop typing", selectedChat._id);
     try {
       const config = {
@@ -247,13 +259,16 @@ const sendMessage = async () => {
       const { data } = await axios.post(
         `${process.env.APP_URL}api/message`,
         {
-          content: newMessage,
+          content: newMessage.value,
           chatId: selectedChat.value?._id,
         },
         config
       );
+      newMessage.value = ''
       console.log(data, "message data")
-      // socket.emit("new message", data);
+      messages?.value.push(data);
+      scrollToBottom()
+      socket.emit("new message", data);
       // setMessages([...messages, data]);
     } catch (error) {
       console.log(error, "Error sending message");
@@ -283,7 +298,8 @@ const fetchMessages = async () => {
       config
     );
     console.log(data);
-    // setMessages(data);
+    newMessage.value = ''
+    messages.value = data;
     // setLoading(false);
 
     // socket.emit("join chat", selectedChat.value?._id);
@@ -300,9 +316,35 @@ const fetchMessages = async () => {
   }
 };
 
+const formatTimestampWithTime = (timestamp) => {
+    const date = new Date(timestamp);
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const dayIndex = date.getDay(); // Get the day index (0-6)
+    const dayAbbreviation = days[dayIndex]; // Get the three-letter abbreviation of the day
+
+    // Get the time in HH:mm format
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const time = `${hours}:${minutes}`;
+
+    return `${dayAbbreviation}, ${time}`; // Return day abbreviation followed by time
+}
+
 onMounted(async () => {
-  await fetchChats();
-  // await fetchMessages();
+  socket.emit("authenticate", user?.value._id);
+  socket.emit("setup", user.value);
+  socket.on("connected");
+  socket.on("message recieved", (newMessageRecieved) => {
+    console.log(newMessageRecieved.content, 'dfghjkl;kjghfdsdfgl')
+    messages?.value.push(newMessageRecieved);
+    scrollToBottom()
+    });
+    setTimeout(() => {
+      scrollToBottom()
+    }, 500)
+    await fetchChats();
+  // socket.on("typing");
+  // socket.on("stop typing");
 });
 </script>
 <style scoped>
@@ -1097,7 +1139,9 @@ ol li {
   padding: 15px 25px;
   background-color: #ffffff;
   border-radius: 15px;
-  color: #949494;
+  color: #303030;
+  text-align: left;
+  overflow-wrap: break-word;
   max-width: 250px;
 }
 
@@ -1158,8 +1202,10 @@ ol li {
   padding: 15px 25px;
   background-color: #c5e2e8;
   border-radius: 15px;
-  color: #949494;
-  width: 250px;
+  color: #303030;
+  max-width: 250px;
+  text-align: right;
+  overflow-wrap: break-word;
 }
 
 .content-chat
