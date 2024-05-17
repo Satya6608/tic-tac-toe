@@ -196,8 +196,8 @@ const fetchChats = async () => {
       const { data } = await axios.get(`${process.env.APP_URL}api/chat/fetch`, config);
       console.log(data);
       chats.value = data;
-      selectedChat.value = data[0];
-      fetchMessages();
+      chatSelect(data[0]);
+      // fetchMessages();
     } catch (error) {
       console.error("Error fetching chats", error);
       // toast({
