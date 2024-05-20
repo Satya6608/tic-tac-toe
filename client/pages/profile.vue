@@ -18,6 +18,9 @@
         <nuxt-link to="/edit" class="edit-profile">
           <span>Edit Profile</span>
         </nuxt-link>
+        <nuxt-link to="/chats" class="edit-profile">
+          <span>Chat</span>
+        </nuxt-link>
       </div>
     </div>
     <div v-if="items.length" class="mt-4">

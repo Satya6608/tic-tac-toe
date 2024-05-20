@@ -67,16 +67,35 @@ export default {
         canvasHeight
       );
       ctx.closePath();
-      ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
+      ctx.fillStyle = "rgba(255, 0, 0, 0.1)";
       ctx.fill();
 
       ctx.strokeStyle = "red";
       ctx.lineWidth = 2;
       ctx.stroke();
+
+      // Draw x and y axis labels
+      ctx.fillStyle = "black";
+      ctx.font = "12px Arial";
+      
+      // Draw x-axis labels
+      dataPoints.value.forEach((point) => {
+        const x = point.x * xScale;
+        // const y = canvasHeight - point.y * yScale;
+        ctx.fillText(point.x.toFixed(1), x, canvasHeight - 5);
+      });
+
+      // Draw y-axis labels
+      dataPoints.value.forEach((point) => {
+        // const x = point.x * xScale;
+        const y = canvasHeight - point.y * yScale;
+        ctx.fillText(point.y.toFixed(1), 5, y);
+      });
     };
 
     let fetchInterval;
 
+    // Uncomment if you want automatic data fetching every second
     // onMounted(() => {
     //   fetchInterval = setInterval(fetchData, 1000); // Fetch new data every second
     // });

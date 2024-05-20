@@ -6,13 +6,9 @@ const User = require("../models/user");
 //@access          Protected
 const accessChat = async (req, res) => {
   const { userId } = req.body;
-      console.log(userId, req?.user);
   if (!userId) {
-    console.log("UserId param not sent with request");
     return res.sendStatus(400);
   }
-  console.log(userId, req?.user);
-
   var isChat = await Chat.find({
     isGroupChat: false,
     $and: [

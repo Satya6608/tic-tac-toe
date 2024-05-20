@@ -166,31 +166,18 @@
                   : 'message-user-right-text'
               "
             >
-              <span style="font-size: 14px">{{ item?.content }}</span>
+              <span style="font-size: 14px; display: block;">{{ item?.content }}</span>
               <small
                 style="
-                  position: absolute;
-                  bottom: 2px;
-                  right: 12px;
                   font-size: 10px;
+                  text-align: right;
+                  display: block;
                 "
                 >{{ formatTimestampWithTime(item.updatedAt) }}</small
               >
             </div>
           </div>
-          <!-- <div class="message-user-right">
-            <div class="message-user-right-img">
-              <p class="mt-0 mb-0"><strong>Luis Angel Solano Rivera</strong></p>
-              <small>mié 17:59</small>
-              <img
-                src="https://images.pexels.com/photos/2117283/pexels-photo-2117283.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
-                alt=""
-              />
-            </div>
-            <div class="message-user-right-text">
-              <strong>Hola, ¿Cómo estás?</strong>
-            </div>
-          </div> -->
+          <TypingBullets v-if="isTyping"/>
         </div>
         <div class="body-chat-message-user justify-center items-center" v-else>
           No message to show<br />
@@ -198,7 +185,7 @@
         </div>
         <div class="footer-chat-message-user">
           <div class="message-user-send">
-            <input type="text" placeholder="Aa" v-model="newMessage" />
+            <input type="text" placeholder="Aa" v-model="newMessage" @keyup.enter="sendMessage" @input="typingHandler()"/>
           </div>
           <button type="button" @click="sendMessage">
             <i class="fa-solid fa-paper-plane"></i>
@@ -214,6 +201,9 @@ import { onMounted } from "vue";
 import axios from "axios";
 import { storeToRefs } from "pinia";
 import { useAuthStore } from "~/store/auth.js";
+import TypingBullets from "@/components/typingBullets.vue"
+import { toast } from "vue3-toastify";
+import "vue3-toastify/dist/index.css";
 import { io } from "socket.io-client";
 const socket = io(process.env.APP_URL);
 
@@ -227,13 +217,35 @@ const selectedChat = ref(null);
 const messageContainer = ref(null);
 const messages = ref([]);
 const newMessage = ref("");
+const isTyping = ref(false);
+const typing = ref(false);
+const socketConnected = ref(false);
 
 const scrollToBottom = () => {
-  console.log("scrollToBottom", messageContainer.value);
-  if (messageContainer.value) {
+  setTimeout(() => {
     messageContainer.value.scrollTop = messageContainer.value.scrollHeight;
-  }
+  }, 500)
 };
+
+  const typingHandler = (e) => {
+
+    if (!socketConnected.value) return;
+
+    if (!typing.value) {
+      typing.value = true;
+      socket.emit("typing", selectedChat.value?._id);
+    }
+    let lastTypingTime = new Date().getTime();
+    var timerLength = 5000;
+    setTimeout(() => {
+      var timeNow = new Date().getTime();
+      var timeDiff = timeNow - lastTypingTime;
+      if (timeDiff >= timerLength && typing) {
+        socket.emit("stop typing", selectedChat.value?._id);
+        typing.value = false;
+      }
+    }, timerLength);
+  };
 
 const chatSelect = (chat) => {
   selectedChat.value = chat;
@@ -241,8 +253,6 @@ const chatSelect = (chat) => {
   fetchMessages();
 };
 const fetchChats = async () => {
-  console.log("dfghjkl;lkjhgfdsfghj");
-  console.log(token.value);
   try {
     const config = {
       headers: {
@@ -254,26 +264,23 @@ const fetchChats = async () => {
       `${process.env.APP_URL}api/chat/fetch`,
       config
     );
-    console.log(data);
     chats.value = data;
     chatSelect(data[0]);
     // fetchMessages();
   } catch (error) {
     console.error("Error fetching chats", error);
-    // toast({
-    //   title: "Error Occured!",
-    //   description: "Failed to Load the chats",
-    //   status: "error",
-    //   duration: 5000,
-    //   isClosable: true,
-    //   position: "bottom-left",
-    // });
+    toast("Error fetching chats", {
+      "theme": "colored",
+      "type": "error",
+      "position": "top-center",
+      "autoClose": 3000,
+      "transition": "slide",
+      "dangerouslyHTMLString": true
+    })
   }
 };
 
 const accessChat = async (userId) => {
-  console.log(userId);
-
   try {
     const config = {
       headers: {
@@ -305,7 +312,6 @@ const searchUser = () => {
       )
       .then((res) => {
         // if (res.data.length > 0) {
-        console.log(res.data);
         searchedPlayer.value = res.data;
         //   gameStore.setOponentPlayer(res.data[0].username);
         //   router.push("/tictactoe");
@@ -314,8 +320,8 @@ const searchUser = () => {
   }
 };
 const sendMessage = async () => {
-  if (newMessage.value) {
-    // socket.emit("stop typing", selectedChat._id);
+  if (newMessage.value && selectedChat.value) {
+    socket.emit("stop typing", selectedChat.value?._id);
     try {
       const config = {
         headers: {
@@ -333,22 +339,29 @@ const sendMessage = async () => {
         config
       );
       newMessage.value = "";
-      console.log(data, "message data");
       messages?.value.push(data);
       scrollToBottom();
       socket.emit("new message", data);
       // setMessages([...messages, data]);
     } catch (error) {
-      console.log(error, "Error sending message");
-      // toast({
-      //   title: "Error Occured!",
-      //   description: "Failed to send the Message",
-      //   status: "error",
-      //   duration: 5000,
-      //   isClosable: true,
-      //   position: "bottom",
-      // });
+      toast("Error Occured While fetching data", {
+      "theme": "colored",
+      "type": "error",
+      "position": "top-center",
+      "autoClose": 3000,
+      "transition": "slide",
+      "dangerouslyHTMLString": true
+    })
     }
+  }else {
+    toast("Please select a chat by using search", {
+      "theme": "colored",
+      "type": "warning",
+      "position": "top-center",
+      "autoClose": 3000,
+      "transition": "slide",
+      "dangerouslyHTMLString": true
+    })
   }
 };
 
@@ -365,22 +378,21 @@ const fetchMessages = async () => {
       `${process.env.APP_URL}api/message/${selectedChat.value?._id}`,
       config
     );
-    console.log(data);
     newMessage.value = "";
     messages.value = data;
     // setLoading(false);
-
-    // socket.emit("join chat", selectedChat.value?._id);
+    scrollToBottom();
+    socket.emit("join chat", selectedChat.value?._id);
   } catch (error) {
-    console.error("Error fetching messages", error);
-    // toast({
-    //   title: "Error Occured!",
-    //   description: "Failed to Load the Messages",
-    //   status: "error",
-    //   duration: 5000,
-    //   isClosable: true,
-    //   position: "bottom",
-    // });
+    // console.error("Error fetching messages", error);
+    toast("Failed to Load the Messages", {
+      "theme": "colored",
+      "type": "error",
+      "position": "top-center",
+      "autoClose": 3000,
+      "transition": "slide",
+      "dangerouslyHTMLString": true
+    })
   }
 };
 
@@ -399,22 +411,28 @@ const formatTimestampWithTime = (timestamp) => {
 };
 
 onMounted(async () => {
-  console.log("dfghjkl;lkjhgfdsfghj", process.env.APP_URL);
-
   socket.emit("authenticate", user?.value._id);
   socket.emit("setup", user.value);
-  socket.on("connected");
+  socket.on("connected", () => { socketConnected.value = true; });
   socket.on("message recieved", (newMessageRecieved) => {
-    console.log(newMessageRecieved.content, "dfghjkl;kjghfdsdfgl");
     messages?.value.push(newMessageRecieved);
+    toast('New message received', {
+      "theme": "auto",
+      "type": "default",
+      "position": "top-center",
+      "autoClose": 3000,
+      "transition": "slide",
+      "dangerouslyHTMLString": true
+    })
     scrollToBottom();
   });
-  setTimeout(() => {
     scrollToBottom();
-  }, 500);
   await fetchChats();
-  // socket.on("typing");
-  // socket.on("stop typing");
+  socket.on("typing", () => {
+    isTyping.value = true;
+    scrollToBottom();
+  });
+  socket.on("stop typing", () => { isTyping.value = false; });
 });
 </script>
 <style scoped>

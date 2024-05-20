@@ -20,7 +20,7 @@ const signup = async (req, res) => {
       success: true,
       message: "User registered successfully",
       token: token,
-      user: { _id: newUser._id, email: newUser.email, username: newUser.username, image: user.image },
+      user: { _id: newUser._id, email: newUser.email, username: newUser.username, image: newUser.image },
     });
   } catch (error) {
     console.error(error);

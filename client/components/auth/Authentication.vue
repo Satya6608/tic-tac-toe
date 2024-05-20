@@ -16,7 +16,7 @@
             placeholder="username"
             autofocus="on"
             v-model="username"
-            maxlength="6"
+            @input="validateInput"
           />
         </div>
         <div class="input-container">
@@ -25,6 +25,7 @@
             placeholder="******"
             v-model="pass"
             minlength="8"
+            @keyup.enter="Login()"
           />
         </div>
         <div class="account-controls">
@@ -38,7 +39,7 @@
           </button></span
         >
       </div>
-      <div class="placeholder-banner" id="banner" :style="{ transform: banner }">
+      <div class="placeholder-banner hidden md:block" id="banner" :style="{ transform: banner }">
         <img
           src="https://img.freepik.com/free-vector/abstract-flat-design-background_23-2148450082.jpg?size=626&ext=jpg&ga=GA1.1.1286474015.1708934801&semt=sph"
           alt=""
@@ -57,13 +58,13 @@
           Create your account to Play the Game
         </p>
         <div class="input-container">
-          <input type="text" placeholder="username@123" v-model="username"  maxlength="6"/>
+          <input type="text" placeholder="username@123" v-model="username" @input="validateInput"/>
         </div>
         <div class="input-container">
-          <input type="email" placeholder="youremail@example.com" v-model="email"/>
+          <input type="email" placeholder="youremail@example.com" v-model="email" inputmode="email"/>
         </div>
         <div class="input-container">
-          <input type="password" placeholder="******" v-model="pass"  minlength="8"/>
+          <input type="password" placeholder="******" v-model="pass"  minlength="8" @keyup.enter="signUp()"/>
         </div>
         <div class="account-controls">
           <button @click="signUp()">Next <i class="fas fa-solid fa-angle-right"></i></button>
@@ -84,6 +85,8 @@ import { useRouter } from 'vue-router';
 import { useAuthStore } from "~/store/auth.js"
 import { storeToRefs } from "pinia"
 import { io } from 'socket.io-client';
+import { toast } from "vue3-toastify";
+import "vue3-toastify/dist/index.css";
 const socket = io(process.env.APP_URL);
 
 const authStore = useAuthStore()
@@ -98,6 +101,11 @@ const signupTransform = ref("scale(0)");
 const email = ref("");
 const pass = ref("");
 const username = ref("");
+
+const validateInput = () => {
+let regex = /[\s!@#$%^&*()_+={}\[\]:;"'<>,.?/\\|~-]/g;
+  username.value = username.value.replace(regex, '');
+}
 
 const signupToggle = () => {
     banner.value = "translateX(-100%)";
@@ -121,6 +129,14 @@ const Login = async () => {
       password: pass.value,
     });
     if (res.data.success) {
+      toast(res.data.message, {
+      "theme": "colored",
+      "type": "success",
+      "position": "top-center",
+      "autoClose": 3000,
+      "transition": "slide",
+      "dangerouslyHTMLString": true
+    })
       socket.emit("authenticate", res.data.user._id)
       const token = res.data.token;
       const user = res.data.user;
@@ -128,10 +144,27 @@ const Login = async () => {
       router.push("/profile");
       reset()
     } else {
-      throw new Error(res.data.message);
+      toast(res.data.message, {
+      "theme": "colored",
+      "type": "warning",
+      "position": "top-center",
+      "autoClose": 3000,
+      "transition": "slide",
+      "dangerouslyHTMLString": true
+    })
+      // throw new Error(res.data.message);
     }
   } catch (err) {
-    console.error("something went wrong", err);
+    toast(err.response.data.error, {
+      "theme": "colored",
+      "type": "error",
+      "position": "top-center",
+      "autoClose": 3000,
+      "transition": "slide",
+      "dangerouslyHTMLString": true
+    })
+    reset()
+    // console.error("something went wrong", err);
   }
 }
 
@@ -149,18 +182,37 @@ const signUp = async () => {
           password: pass.value,
         });
         if (res.data.success) {
-          // setCookie("jwt", res.data.token, {
-          //   httpOnly: true,
-          //   maxAge: 60 * 60 * 24 * 7, // Example: 7 days, adjust as needed
-          //   path: "/", // You may adjust this based on your requirements
-          //   sameSite: "strict", // You may adjust this based on your requirements
-          // });
+          toast(res.data.message, {
+            "theme": "colored",
+            "type": "success",
+            "position": "top-center",
+            "autoClose": 3000,
+            "transition": "slide",
+            "dangerouslyHTMLString": true
+          })
           authStore.login(res.data.token, res.data.user)
           router.push("/profile");
           reset()
+        } else {
+          toast(res.data.message, {
+            "theme": "colored",
+            "type": "warning",
+            "position": "top-center",
+            "autoClose": 3000,
+            "transition": "slide",
+            "dangerouslyHTMLString": true
+          })
         }
       } catch (err) {
-        console.error("something went wrong", err);
+        toast(err.response.data.error, {
+          "theme": "colored",
+          "type": "error",
+          "position": "top-center",
+          "autoClose": 3000,
+          "transition": "slide",
+          "dangerouslyHTMLString": true
+        })
+        // console.error("something went wrong", err);
       }
   } else return;
 }

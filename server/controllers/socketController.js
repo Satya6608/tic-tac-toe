@@ -9,7 +9,7 @@ function handleSocketConnection(io) {
         connectedUsers.set(userId, socket.id);
         User.findByIdAndUpdate(userId, { online: true }, { new: true })
         .then((user) => {
-            console.log(`${user} connected`);
+            // console.log(`${user} connected`);
         })
         .catch((error) => {
             console.error('Error updating online status:', error);
@@ -38,26 +38,24 @@ function handleSocketConnection(io) {
     });
 
     socket.on("setup", (userData) => {
-      console.log(userData, "dfghjklkjhgfdfghjkljghdffghjkljhgfds");
       socket.join(userData._id);
       socket.emit("connected");
     });
 
-    // socket.on("join chat", (room) => {
-    //   socket.join(room);
-    //   console.log("User Joined Room: " + room);
-    // });
-    socket.on("typing", (room) => socket.in(room).emit("typing"));
+    socket.on("join chat", (room) => {
+      socket.join(room);
+    });
+    socket.on("typing", (room) => {
+      socket.in(room).emit("typing")
+    });
     socket.on("stop typing", (room) => socket.in(room).emit("stop typing"));
 
     socket.on("new message", (newMessageRecieved) => {
       var chat = newMessageRecieved.chat;
-        console.log(chat, "new message")
       if (!chat.users) return console.log("chat.users not defined");
 
       chat.users.forEach((user) => {
         if (user._id == newMessageRecieved.sender._id) return;
-        console.log("user", newMessageRecieved)
         socket.in(user._id).emit("message recieved", newMessageRecieved);
       });
     });
