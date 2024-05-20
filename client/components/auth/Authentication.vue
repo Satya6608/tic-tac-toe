@@ -4,7 +4,7 @@
       <div
         class="login-container"
         id="login-container"
-        :style="{ transform: loginTransform }"
+        :style="loginMobile ? 'transform : scale(0); width: 0; padding: 0;' : 'transform : scale(1); width: 100%;'"
       >
         <h1 class="title">Log In</h1>
         <p class="desc">
@@ -51,7 +51,7 @@
       <div
         class="signup-container"
         id="signup-container"
-        :style="{ transform: signupTransform }"
+        :style="signupMobile ? 'transform : scale(0); width: 0; padding: 0;' : 'transform : scale(1); width: 100%;'"
       >
         <h1 class="title">Signup</h1>
         <p class="desc">
@@ -97,7 +97,9 @@ const signupContainer = ref(null);
 
 const router = useRouter();
 const loginTransform = ref("scale(1)");
+const loginMobile = ref(false)
 const signupTransform = ref("scale(0)");
+const signupMobile = ref(true)
 const email = ref("");
 const pass = ref("");
 const username = ref("");
@@ -111,13 +113,21 @@ const signupToggle = () => {
     banner.value = "translateX(-100%)";
     bannerImg.value = "scaleX(-1)";
     loginTransform.value = "scale(0)";
-    signupTransform.value = "scale(1)"
+    if(window.innerWidth <= 768){
+      loginMobile.value = true;
+      signupMobile.value = false;
+    }
+    signupTransform.value = "scale(1)";
     reset()
 }
 const loginToggle = () => {
     banner.value = "translateX(0%)"
     bannerImg.value = "scaleX(-1)";
     signupTransform.value = "scale(0)"
+    if(window.innerWidth <= 768){
+      signupMobile.value = true;
+      loginMobile.value = false;
+    }
     loginTransform.value = "scale(1)"
     reset()
 }
