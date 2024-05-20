@@ -201,11 +201,16 @@ import { onMounted } from "vue";
 import axios from "axios";
 import { storeToRefs } from "pinia";
 import { useAuthStore } from "~/store/auth.js";
+import auth from "~/middleware/auth.js";
 import TypingBullets from "@/components/typingBullets.vue"
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
 import { io } from "socket.io-client";
 const socket = io(process.env.APP_URL);
+
+definePageMeta({
+  middleware: ["auth"],
+});
 
 const authStore = useAuthStore();
 const { user, token } = storeToRefs(authStore);
