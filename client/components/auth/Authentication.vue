@@ -4,12 +4,10 @@
       <div
         class="login-container"
         id="login-container"
-        :style="loginMobile ? 'transform : scale(0); width: 0; padding: 0;' : 'transform : scale(1); width: 100%;'"
+        :style="`transform : ${loginTransform.transform}; width: ${loginTransform.width}; padding: ${loginTransform.padding}`"
       >
         <h1 class="title">Log In</h1>
-        <p class="desc">
-          Login to your account to Play the game
-        </p>
+        <p class="desc">Login to your account to Play the game</p>
         <div class="input-container">
           <input
             type="text"
@@ -30,7 +28,9 @@
         </div>
         <div class="account-controls">
           <a href="">Forgot Password?</a>
-          <button @click="Login()">Next <i class="fas fa-solid fa-angle-right"></i></button>
+          <button @click="Login()">
+            Next <i class="fas fa-solid fa-angle-right"></i>
+          </button>
         </div>
         <span class="signup-text"
           >Don't have an account yet?
@@ -39,39 +39,61 @@
           </button></span
         >
       </div>
-      <div class="placeholder-banner hidden md:block" id="banner" :style="{ transform: banner }">
+      <div
+        class="placeholder-banner hidden md:block"
+        id="banner"
+        :style="{ transform: banner }"
+      >
         <img
           src="https://img.freepik.com/free-vector/abstract-flat-design-background_23-2148450082.jpg?size=626&ext=jpg&ga=GA1.1.1286474015.1708934801&semt=sph"
           alt=""
           class="banner"
         />
-          <!-- :style="{transform: bannerImg}" -->
+        <!-- :style="{transform: bannerImg}" -->
       </div>
 
       <div
         class="signup-container"
         id="signup-container"
-        :style="signupMobile ? 'transform : scale(0); width: 0; padding: 0;' : 'transform : scale(1); width: 100%;'"
+        :style="`transform : ${signupTransform.transform}; width: ${signupTransform.width}; padding: ${signupTransform.padding}`"
       >
         <h1 class="title">Signup</h1>
-        <p class="desc">
-          Create your account to Play the Game
-        </p>
+        <p class="desc">Create your account to Play the Game</p>
         <div class="input-container">
-          <input type="text" placeholder="username@123" v-model="username" @input="validateInput"/>
+          <input
+            type="text"
+            placeholder="username@123"
+            v-model="username"
+            @input="validateInput"
+          />
         </div>
         <div class="input-container">
-          <input type="email" placeholder="youremail@example.com" v-model="email" inputmode="email"/>
+          <input
+            type="email"
+            placeholder="youremail@example.com"
+            v-model="email"
+            inputmode="email"
+          />
         </div>
         <div class="input-container">
-          <input type="password" placeholder="******" v-model="pass"  minlength="8" @keyup.enter="signUp()"/>
+          <input
+            type="password"
+            placeholder="******"
+            v-model="pass"
+            minlength="8"
+            @keyup.enter="signUp()"
+          />
         </div>
         <div class="account-controls">
-          <button @click="signUp()">Next <i class="fas fa-solid fa-angle-right"></i></button>
+          <button @click="signUp()">
+            Next <i class="fas fa-solid fa-angle-right"></i>
+          </button>
         </div>
         <span class="signup-text"
           >Already have an account?
-          <button id="login-form-toggler" @click="loginToggle">Login here</button></span
+          <button id="login-form-toggler" @click="loginToggle">
+            Login here
+          </button></span
         >
       </div>
     </div>
@@ -79,153 +101,211 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import axios from "axios";
-import { useRouter } from 'vue-router';
-import { useAuthStore } from "~/store/auth.js"
-import { storeToRefs } from "pinia"
-import { io } from 'socket.io-client';
+import { useRouter } from "vue-router";
+import { useAuthStore } from "~/store/auth.js";
+import { storeToRefs } from "pinia";
+import { io } from "socket.io-client";
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
 const socket = io(process.env.APP_URL);
 
-const authStore = useAuthStore()
+const authStore = useAuthStore();
 const banner = ref(null);
 const bannerImg = ref(null);
 const loginContainer = ref(null);
 const signupContainer = ref(null);
 
 const router = useRouter();
-const loginTransform = ref("scale(1)");
-const loginMobile = ref(false)
-const signupTransform = ref("scale(0)");
-const signupMobile = ref(true)
+const loginTransform = ref({
+  transform: "scale(1)",
+  width: "50%",
+  padding: "10px",
+});
+const loginMobile = ref(false);
+const signupTransform = ref({
+  transform: "scale(0)",
+  width: "50%",
+  padding: "10px",
+});
+const signupMobile = ref(true);
 const email = ref("");
 const pass = ref("");
 const username = ref("");
 
 const validateInput = () => {
-let regex = /[\s!@#$%^&*()_+={}\[\]:;"'<>,.?/\\|~-]/g;
-  username.value = username.value.replace(regex, '');
-}
+  let regex = /[\s!@#$%^&*()_+={}\[\]:;"'<>,.?/\\|~-]/g;
+  username.value = username.value.replace(regex, "");
+};
 
 const signupToggle = () => {
-    banner.value = "translateX(-100%)";
-    bannerImg.value = "scaleX(-1)";
-    loginTransform.value = "scale(0)";
-    if(window.innerWidth <= 768){
-      loginMobile.value = true;
-      signupMobile.value = false;
-    }
-    signupTransform.value = "scale(1)";
-    reset()
-}
+  banner.value = "translateX(-100%)";
+  bannerImg.value = "scaleX(-1)";
+  if (window.innerWidth <= 768) {
+    // loginMobile.value = true;
+    // signupMobile.value = false;
+    loginTransform.value = {
+      transform: "scale(0)",
+      width: "0",
+      padding: "0",
+    };
+    signupTransform.value = {
+      transform: "scale(1)",
+      width: "100%",
+      padding: "10px",
+    };
+  } else {
+    loginTransform.value = {
+      transform: "scale(0)",
+      width: "50%",
+      padding: "10px",
+    };
+    signupTransform.value = {
+      transform: "scale(1)",
+      width: "50%",
+      padding: "10px",
+    };
+  }
+  reset();
+};
 const loginToggle = () => {
-    banner.value = "translateX(0%)"
-    bannerImg.value = "scaleX(-1)";
-    signupTransform.value = "scale(0)"
-    if(window.innerWidth <= 768){
-      signupMobile.value = true;
-      loginMobile.value = false;
-    }
-    loginTransform.value = "scale(1)"
-    reset()
-}
+  banner.value = "translateX(0%)";
+  bannerImg.value = "scaleX(-1)";
+  if (window.innerWidth <= 768) {
+    loginTransform.value = {
+      transform: "scale(1)",
+      width: "100%",
+      padding: "10px",
+    };
+    signupTransform.value = {
+      transform: "scale(0)",
+      width: "0",
+      padding: "0",
+    };
+  } else {
+    loginTransform.value = {
+      transform: "scale(1)",
+      width: "50%",
+      padding: "10px",
+    };
+    signupTransform.value = {
+      transform: "scale(0)",
+      width: "50%",
+      padding: "10px",
+    };
+  }
+  reset();
+};
 
 const Login = async () => {
-    try {
+  try {
     const res = await axios.post(`${process.env.APP_URL}api/login`, {
       username: username.value,
       password: pass.value,
     });
     if (res.data.success) {
       toast(res.data.message, {
-      "theme": "colored",
-      "type": "success",
-      "position": "top-center",
-      "autoClose": 3000,
-      "transition": "slide",
-      "dangerouslyHTMLString": true
-    })
-      socket.emit("authenticate", res.data.user._id)
+        theme: "colored",
+        type: "success",
+        position: "top-center",
+        autoClose: 3000,
+        transition: "slide",
+        dangerouslyHTMLString: true,
+      });
+      socket.emit("authenticate", res.data.user._id);
       const token = res.data.token;
       const user = res.data.user;
       authStore.login(token, user);
       router.push("/profile");
-      reset()
+      reset();
     } else {
       toast(res.data.message, {
-      "theme": "colored",
-      "type": "warning",
-      "position": "top-center",
-      "autoClose": 3000,
-      "transition": "slide",
-      "dangerouslyHTMLString": true
-    })
+        theme: "colored",
+        type: "warning",
+        position: "top-center",
+        autoClose: 3000,
+        transition: "slide",
+        dangerouslyHTMLString: true,
+      });
       // throw new Error(res.data.message);
     }
   } catch (err) {
     toast(err.response.data.error, {
-      "theme": "colored",
-      "type": "error",
-      "position": "top-center",
-      "autoClose": 3000,
-      "transition": "slide",
-      "dangerouslyHTMLString": true
-    })
-    reset()
+      theme: "colored",
+      type: "error",
+      position: "top-center",
+      autoClose: 3000,
+      transition: "slide",
+      dangerouslyHTMLString: true,
+    });
+    reset();
     // console.error("something went wrong", err);
   }
-}
+};
 
 const reset = () => {
   username.value = "";
   email.value = "";
   pass.value = "";
-}
+};
 const signUp = async () => {
   if (username.value && pass.value && email.value) {
-      try {
-        const res = await axios.post(`${process.env.APP_URL}api/signup`, {
-          username: username.value,
-          email: email.value,
-          password: pass.value,
+    try {
+      const res = await axios.post(`${process.env.APP_URL}api/signup`, {
+        username: username.value,
+        email: email.value,
+        password: pass.value,
+      });
+      if (res.data.success) {
+        toast(res.data.message, {
+          theme: "colored",
+          type: "success",
+          position: "top-center",
+          autoClose: 3000,
+          transition: "slide",
+          dangerouslyHTMLString: true,
         });
-        if (res.data.success) {
-          toast(res.data.message, {
-            "theme": "colored",
-            "type": "success",
-            "position": "top-center",
-            "autoClose": 3000,
-            "transition": "slide",
-            "dangerouslyHTMLString": true
-          })
-          authStore.login(res.data.token, res.data.user)
-          router.push("/profile");
-          reset()
-        } else {
-          toast(res.data.message, {
-            "theme": "colored",
-            "type": "warning",
-            "position": "top-center",
-            "autoClose": 3000,
-            "transition": "slide",
-            "dangerouslyHTMLString": true
-          })
-        }
-      } catch (err) {
-        toast(err.response.data.error, {
-          "theme": "colored",
-          "type": "error",
-          "position": "top-center",
-          "autoClose": 3000,
-          "transition": "slide",
-          "dangerouslyHTMLString": true
-        })
-        // console.error("something went wrong", err);
+        authStore.login(res.data.token, res.data.user);
+        router.push("/profile");
+        reset();
+      } else {
+        toast(res.data.message, {
+          theme: "colored",
+          type: "warning",
+          position: "top-center",
+          autoClose: 3000,
+          transition: "slide",
+          dangerouslyHTMLString: true,
+        });
       }
+    } catch (err) {
+      toast(err.response.data.error, {
+        theme: "colored",
+        type: "error",
+        position: "top-center",
+        autoClose: 3000,
+        transition: "slide",
+        dangerouslyHTMLString: true,
+      });
+      // console.error("something went wrong", err);
+    }
   } else return;
-}
+};
+onMounted(() => {
+  if (window.innerWidth <= 768) {
+    loginTransform.value = {
+      transform: "scale(1)",
+      width: "100%",
+      padding: "10px",
+    };
+    signupTransform.value = {
+      transform: "scale(0)",
+      width: "0",
+      padding: "0",
+    };
+  }
+});
 </script>
 
 <style>
