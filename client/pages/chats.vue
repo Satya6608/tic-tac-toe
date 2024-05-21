@@ -24,8 +24,8 @@
             autocomplete="off"
             @input="searchUser()"
           />
-          <span>
-            <i class="fa-solid fa-magnifying-glass"></i>
+          <span class="absolute right-4">
+            <img :src="searchImg" alt="" width="30px">
           </span>
           <div
             class="!block !w-full absolute buttons options top-12 z-10"
@@ -99,7 +99,8 @@
 
       <div class="content-chat-message-user" data-username="Jorge Harrinson">
         <div class="head-chat-message-user">
-          <img
+          <div class="flex gap-x-4 head__side__icon">
+            <img
             :src="
               selectedChat?.users[0]?._id == user?._id
                 ? selectedChat?.users[1]?.image
@@ -129,6 +130,18 @@
             </p>
             <p v-else class="online mt-0 mb-0">Online</p>
             <!-- </small> -->
+          </div>
+          </div>
+          <div class="flex items-center gap-x-2">
+            <div class="flex items-center justify-center user-header-icons">
+              <img :src="gameImg" alt="" style="width: 20px; height:20px;">
+            </div>
+            <div class="flex items-center justify-center user-header-icons">
+              <img :src="audioCallImg" alt="" style="width: 20px; height:20px;">
+            </div>
+            <div class="flex items-center justify-center user-header-icons">
+              <img :src="videoCallImg" alt="" style="width: 20px; height:20px;">
+            </div>
           </div>
         </div>
         <div
@@ -187,8 +200,8 @@
           <div class="message-user-send">
             <input type="text" placeholder="Aa" v-model="newMessage" @keyup.enter="sendMessage" @input="typingHandler()"/>
           </div>
-          <button type="button" @click="sendMessage">
-            <i class="fa-solid fa-paper-plane"></i>
+          <button type="button" @click="sendMessage" class="flex items-center justify-center">
+            <img :src="sendImg" alt="sendMessage" width="20px">
           </button>
         </div>
       </div>
@@ -201,6 +214,11 @@ import { onMounted } from "vue";
 import axios from "axios";
 import { storeToRefs } from "pinia";
 import { useAuthStore } from "~/store/auth.js";
+import sendImg from "~/assets/img/paperplane1.svg"
+import searchImg from "~/assets/img/search.svg"
+import gameImg from "~/assets/img/gameicon.svg"
+import audioCallImg from "~/assets/img/viocecall.svg"
+import videoCallImg from "~/assets/img/videocall.svg"
 import auth from "~/middleware/auth.js";
 import TypingBullets from "@/components/typingBullets.vue"
 import { toast } from "vue3-toastify";
@@ -1058,7 +1076,7 @@ ol li {
 
 .content-chat .content-chat-message-user .head-chat-message-user {
   display: flex;
-  gap: 15px;
+  justify-content: space-between;
   padding: 10px 15px;
   border-radius: 25px 25px 0 0;
   background-color: #19b6d3;
@@ -1067,7 +1085,7 @@ ol li {
   margin-right: -15px;
 }
 
-.content-chat .content-chat-message-user .head-chat-message-user img {
+.content-chat .content-chat-message-user .head-chat-message-user .head__side__icon img {
   width: 60px;
   height: 60px;
   border-radius: 50%;
@@ -1405,6 +1423,18 @@ ol li {
   width: 30px;
   aspect-ratio: 1/1;
 }
+
+.user-header-icons{
+  font-size: 18px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: none;
+  background-color: #c5e2e8;
+  color: #ffffff;
+  cursor: pointer;
+}
+
 
 @media (max-width: 913px) {
   .content-chat {
