@@ -1,6 +1,6 @@
 const bcrypt = require("bcrypt");
 const User = require("../models/user");
-const createToken = require("../utils/createToken");
+const { createToken, generateOTP } = require("../utils/createToken");
 
 const signup = async (req, res) => {
   try {
@@ -146,5 +146,53 @@ const getUserById = async (req, res) => {
   }
 };
 
+const forgetPassword = async (req, res) => {
+  const { email } = req.body;
+  console.log(email, "remember password")
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
 
-module.exports = { signup, login, editUser, allUsers, getUserById };
+    const otp = generateOTP();
+    user.otp = otp;
+    await user.save();
+    // Here you would typically send the OTP via email or SMS to the user
+
+    // For demonstration, let's just send it in the response
+    console.log(otp)
+    return res.json({ otp });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+const verifyPassword = async (req, res) => {
+  const { email, otp, newPassword } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // For simplicity, let's assume the OTP sent via email matches the one provided
+    if (otp !== user.otp) {
+      return res.status(400).json({ error: 'Invalid OTP' });
+    }
+
+    // Update the password
+    user.password = hashedPassword;
+    await user.save();
+
+    return res.json({ message: 'Password updated successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+module.exports = { signup, login, editUser, allUsers, getUserById, forgetPassword, verifyPassword };

@@ -27,7 +27,7 @@
           />
         </div>
         <div class="account-controls">
-          <a href="">Forgot Password?</a>
+          <nuxt-link to="/forget-password">Forgot Password?</nuxt-link>
           <button @click="Login()">
             Next <i class="fas fa-solid fa-angle-right"></i>
           </button>

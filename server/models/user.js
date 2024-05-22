@@ -19,6 +19,9 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
+  otp: {
+    type: String
+  },
   image: {
     type: String,
     default: 'http://loremflickr.com/60/60/girl',
