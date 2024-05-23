@@ -1,6 +1,7 @@
 const bcrypt = require("bcrypt");
 const User = require("../models/user");
 const { createToken, generateOTP } = require("../utils/createToken");
+const sendPasswordResetEmail = require('../utils/mailer');
 
 const signup = async (req, res) => {
   try {
@@ -166,11 +167,11 @@ const forgetPassword = async (req, res) => {
     // Here you would typically send the OTP via email or SMS to the user
 
     // For demonstration, let's just send it in the response
-    console.log(otp)
+    console.log(otp);
+    sendPasswordResetEmail("satyaprakash01.gh@gmail.com", otp);
     res.json({
       success: true,
       message: "OTP sent to your email",
-      otp: otp,
     });
   } catch (err) {
     console.error(err);
