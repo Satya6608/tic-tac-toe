@@ -167,8 +167,7 @@ const forgetPassword = async (req, res) => {
     // Here you would typically send the OTP via email or SMS to the user
 
     // For demonstration, let's just send it in the response
-    console.log(otp);
-    sendPasswordResetEmail("satyaprakash01.gh@gmail.com", otp);
+    sendPasswordResetEmail(user?.email, otp);
     res.json({
       success: true,
       message: "OTP sent to your email",

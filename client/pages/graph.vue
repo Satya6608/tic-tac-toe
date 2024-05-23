@@ -38,6 +38,7 @@ export default {
       const x = initialData.length + time;
       const y = Math.exp((initialData.length + time) / 5); // Exponential growth
       dataPoints.value.push({ x, y });
+      console.log("from fetch data");
       drawGraph();
     };
 
@@ -94,15 +95,19 @@ export default {
     };
 
     let fetchInterval;
-
+const some = () => {
+  console.log("from some");
+  setTimeout(fetchData,5000);
+}
     // Uncomment if you want automatic data fetching every second
-    // onMounted(() => {
-    //   fetchInterval = setInterval(fetchData, 1000); // Fetch new data every second
-    // });
+    onMounted(() => {
+      fetchInterval = setInterval(some, 1000); // Fetch new data every second
+      console.log(fetchInterval, "setinterval Id")
+    });
 
-    // onUnmounted(() => {
-    //   clearInterval(fetchInterval);
-    // });
+    onUnmounted(() => {
+      clearInterval(fetchInterval);
+    });
 
     return {
       graphCanvas,

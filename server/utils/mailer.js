@@ -10,7 +10,7 @@ const transporter = nodemailer.createTransport({
 });
 
 const sendPasswordResetEmail = (to, token) => {
-    let time = new Date().getDate();
+    let time = new Date().getDate() + "-" + new Date().getMonth() + "-" + new Date().getFullYear();
     const mailOptions = {
         from: 'satyaprakash6608@gmail.com',
         to: to,
