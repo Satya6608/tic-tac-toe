@@ -147,10 +147,15 @@ const getUserById = async (req, res) => {
 };
 
 const forgetPassword = async (req, res) => {
-  const { email } = req.body;
-  console.log(email, "remember password")
+  const { username } = req.body;
+  console.log(username, "remember password")
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({
+      $or: [
+        { email: username },
+        { username: username }
+      ]
+    });
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
@@ -162,7 +167,11 @@ const forgetPassword = async (req, res) => {
 
     // For demonstration, let's just send it in the response
     console.log(otp)
-    return res.json({ otp });
+    res.json({
+      success: true,
+      message: "OTP sent to your email",
+      otp: otp,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
@@ -170,10 +179,15 @@ const forgetPassword = async (req, res) => {
 }
 
 const verifyPassword = async (req, res) => {
-  const { email, otp, newPassword } = req.body;
+  const { username, otp, newPassword } = req.body;
 
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({
+      $or: [
+        { email: username },
+        { username: username }
+      ]
+    });
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
@@ -188,7 +202,10 @@ const verifyPassword = async (req, res) => {
     user.password = hashedPassword;
     await user.save();
 
-    return res.json({ message: 'Password updated successfully' });
+    return res.json({
+      success: true,
+      message: "Password updated successfully",
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
