@@ -438,8 +438,10 @@ onMounted(async () => {
   socket.emit("setup", user.value);
   socket.on("connected", () => { socketConnected.value = true; });
   socket.on("message recieved", (newMessageRecieved) => {
-    messages?.value.push(newMessageRecieved);
-    toast('New message received', {
+    console.log(newMessageRecieved, "newMessageRecieved")
+    if(newMessageRecieved?.chat?._id == selectedChat.value?._id){
+      messages?.value.push(newMessageRecieved);
+      toast('New message received', {
       "theme": "auto",
       "type": "default",
       "position": "top-center",
@@ -447,6 +449,16 @@ onMounted(async () => {
       "transition": "slide",
       "dangerouslyHTMLString": true
     })
+    }else{
+      toast('New message received from '+ newMessageRecieved?.sender?.username, {
+        "theme": "auto",
+        "type": "default",
+        "position": "top-center",
+        "autoClose": 3000,
+        "transition": "slide",
+        "dangerouslyHTMLString": true
+      })
+    }
     scrollToBottom();
   });
     scrollToBottom();
