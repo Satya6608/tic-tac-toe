@@ -134,7 +134,7 @@
           </div>
           <div class="flex items-center gap-x-2">
             <div class="flex items-center justify-center user-header-icons">
-              <img :src="gameImg" alt="" style="width: 20px; height:20px;">
+              <img @click="joinGame" :src="gameImg" alt="" style="width: 20px; height:20px;">
             </div>
             <div class="flex items-center justify-center user-header-icons">
               <img :src="audioCallImg" alt="" style="width: 20px; height:20px;">
@@ -223,9 +223,12 @@ import auth from "~/middleware/auth.js";
 import TypingBullets from "@/components/typingBullets.vue"
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
+import { useRouter } from 'vue-router';
+
 import { io } from "socket.io-client";
 const socket = io(process.env.APP_URL);
 
+const router = useRouter();
 definePageMeta({
   middleware: ["auth"],
 });
@@ -243,6 +246,9 @@ const newMessage = ref("");
 const isTyping = ref(false);
 const typing = ref(false);
 const socketConnected = ref(false);
+import { useGameStore } from "~/store/gameStore.js";
+const gameStore = useGameStore();
+
 
 const scrollToBottom = () => {
   setTimeout(() => {
@@ -433,6 +439,16 @@ const formatTimestampWithTime = (timestamp) => {
   return `${dayAbbreviation}, ${time}`; // Return day abbreviation followed by time
 };
 
+const joinGame = () => {
+  if (selectedChat.value) {
+    let opponent = selectedChat.value?.users[0]?._id == user.value?._id
+                  ? selectedChat.value?.users[1]
+                  : selectedChat.value?.users[0];
+    gameStore.setOponentPlayer(opponent.username, opponent._id);
+    socket.emit('joinGame', opponent._id);
+    router.push("/tictactoe");
+  }
+}
 onMounted(async () => {
   socket.emit("authenticate", user?.value._id);
   socket.emit("setup", user.value);
@@ -468,6 +484,18 @@ onMounted(async () => {
     scrollToBottom();
   });
   socket.on("stop typing", () => { isTyping.value = false; });
+  socket.on('startGame', ({ opponent, currentPlayer }) => {
+  axios
+        .get(`${process.env.APP_URL}api/${opponent}`)
+        .then((res) => {
+          gameStore.setOponentPlayer(res.data.username, opponent);
+        });
+  axios
+        .get(`${process.env.APP_URL}api/${currentPlayer}`)
+        .then((res) => {
+          gameStore.changePlayer(res.data.username)
+        });
+  });
 });
 </script>
 <style scoped>
