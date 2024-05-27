@@ -31,7 +31,6 @@ const signup = async (req, res) => {
       } else {
         res.status(400).json({ error: "Email is already in use" });
       }
-      // Duplicate key error (username is not unique)
     } else {
       res.status(500).json({ error: "Internal server error" });
     }
@@ -59,7 +58,7 @@ const login = async (req, res) => {
         success: true,
         message: "User registered successfully",
         token: token,
-        user: { _id: user._id, email: user.email, username: user.username, image: user.image },
+        user: { _id: user._id, email: user.email, username: user.username, image: user.image, online:true },
       });
     } else {
       res.status(401).json({ error: "Invalid credentials" });
