@@ -424,7 +424,25 @@ a {
   .w-10 {
     width: 10%;
   }
-  
+  .group__popup{
+    position: fixed;
+    background-color: #19b6d3cc;
+    height: 100vh;
+    width: 100vw;
+    z-index: 1;
+    top: 110vh;
+    left: 0;
+    transition: 1s all ease-in-out;
+  }
+  .group__popup.active{
+    position: fixed;
+    background-color: #19b6d3cc;
+    height: 100vh;
+    width: 100vw;
+    z-index: 1;
+    top: 0;
+    left: 0;
+  }
   .content-chat {
     margin-right: 30px;
     margin-left: 30px;
