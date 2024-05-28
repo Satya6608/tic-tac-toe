@@ -2,27 +2,30 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 
 const protect = async (req, res, next) => {
-    let token;
-    if (
-      req.headers.authorization &&
-      req.headers.authorization.startsWith("Bearer")
-    ) {
-      try {
-        token = req.headers.authorization.split(" ")[1];
-        //decodes token id
-        const decoded = jwt.verify(token, 'mainhusecretkey');
-        req.user = await User.findById(decoded.id).select("-password");
+  const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
 
-        next();
+    if (token == null) {
+        return res.status(401).json({ message: 'Token is missing!' });
+    }
+    if (token) {
+      try {
+        //decodes token id
+        const decoded = jwt.verify(token, 'mainhusecretkey', async (err, user) => {
+          if (err) {
+              if (err.name === 'TokenExpiredError') {
+                  return res.status(403).json({ message: 'Token has expired, please log in again.' });
+              }
+              return res.status(403).json({ message: 'Invalid token.' });
+          }
+          req.user = user;
+          req.user = await User.findById(decoded.id).select("-password");
+          next();
+        })
       } catch (error) {
         res.status(401);
-        throw new Error("Not authorized, token failed");
+        throw new Error(error.message);
       }
-    }
-
-    if (!token) {
-      res.status(401);
-      throw new Error("Not authorized, no token");
     }
   };
 
