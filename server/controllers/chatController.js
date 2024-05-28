@@ -51,22 +51,26 @@ const accessChat = async (req, res) => {
 //@route           GET /api/chat/
 //@access          Protected
 const fetchChats = async (req, res) => {
-  try {
-    Chat.find({ users: { $elemMatch: { $eq: req.user._id } } })
-      .populate("users", "-password")
-      .populate("groupAdmin", "-password")
-      .populate("latestMessage")
-      .sort({ updatedAt: -1 })
-      .then(async (results) => {
-        results = await User.populate(results, {
-          path: "latestMessage.sender",
-          select: "username image email",
+  if(req?.user?._id){
+    try {
+      Chat.find({ users: { $elemMatch: { $eq: req.user._id } } })
+        .populate("users", "-password")
+        .populate("groupAdmin", "-password")
+        .populate("latestMessage")
+        .sort({ updatedAt: -1 })
+        .then(async (results) => {
+          results = await User.populate(results, {
+            path: "latestMessage.sender",
+            select: "username image email",
+          });
+          res.status(200).send(results);
         });
-        res.status(200).send(results);
-      });
-  } catch (error) {
+    } catch (error) {
+      res.status(400);
+      throw new Error(error.message);
+    }
+  }else{
     res.status(400);
-    throw new Error(error.message);
   }
 };
 

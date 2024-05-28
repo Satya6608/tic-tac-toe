@@ -298,7 +298,7 @@ const fetchChats = async () => {
     // fetchMessages();
   } catch (error) {
     console.error("Error fetching chats", error);
-    toast("Error fetching chats", {
+    toast(error.response.data.message, {
       "theme": "colored",
       "type": "error",
       "position": "top-center",
